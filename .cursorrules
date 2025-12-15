@@ -1,0 +1,249 @@
+# Silto - Mac 状态栏 Todo & 便签应用
+
+这是一个使用 Tauri + Rust + Vue3 + TypeScript 构建的 Mac 状态栏应用。
+
+## 核心功能
+
+1. **系统托盘应用** - 自动托管到 Mac 状态栏，不显示在 Dock
+2. **Todo 管理** - 创建、编辑、删除 Todo，支持定时提醒
+3. **便签管理** - 快速创建和管理便签
+4. **主题切换** - 支持深色和浅色两种主题
+5. **数据持久化** - 使用 Tauri Store 插件本地存储
+
+## 技术栈
+
+### 后端 (Rust + Tauri)
+- **Tauri 2.x** - 跨平台应用框架
+- **tauri-plugin-store** - 数据持久化
+- **tauri-plugin-notification** - 系统通知
+- **chrono** - 时间处理
+- **tokio** - 异步运行时
+
+### 前端 (Vue3 + TypeScript)
+- **Vue 3** - 渐进式框架
+- **TypeScript** - 类型安全
+- **Vite** - 构建工具
+- **Tailwind CSS 3.x** - CSS 框架
+- **shadcn-vue** - UI 组件库
+- **radix-vue** - 无样式组件基础
+- **lucide-vue-next** - 图标库
+
+## 项目架构
+
+### 后端架构 (src-tauri/)
+
+```
+src-tauri/
+├── src/
+│   ├── main.rs          # 应用入口
+│   ├── lib.rs           # 库入口，配置插件和命令
+│   ├── models.rs        # 数据模型 (Todo, Note, Settings)
+│   ├── commands.rs      # Tauri 命令处理 (CRUD 操作)
+│   ├── tray.rs          # 系统托盘管理
+│   └── notification.rs  # 定时提醒系统
+├── Cargo.toml           # Rust 依赖配置
+└── tauri.conf.json      # Tauri 应用配置
+```
+
+#### 关键模块说明
+
+**models.rs** - 定义核心数据结构
+- `Todo`: id, title, content, remind_time, completed, created_at
+- `Note`: id, title, content, created_at, updated_at
+- `Settings`: left_click_action (todo/note), theme (light/dark)
+
+**commands.rs** - Tauri 命令
+- `get_todos()`, `save_todo()`, `delete_todo()`
+- `get_notes()`, `save_note()`, `delete_note()`
+- `get_settings()`, `save_settings()`
+
+**tray.rs** - 系统托盘
+- 创建托盘图标和菜单
+- 处理左键/右键点击事件
+- 发送事件到前端 (tray-add-todo, tray-add-note, tray-settings)
+
+**notification.rs** - 提醒系统
+- 每分钟检查 Todo 提醒时间
+- 发送系统通知
+- 防止重复通知
+
+### 前端架构 (src/)
+
+```
+src/
+├── components/
+│   ├── TodoList.vue      # Todo 列表展示
+│   ├── NoteList.vue      # 便签列表展示
+│   ├── TodoEditor.vue    # Todo 编辑对话框
+│   ├── NoteEditor.vue    # 便签编辑对话框
+│   ├── Settings.vue      # 设置对话框
+│   └── ui/               # shadcn-vue UI 组件
+│       ├── Button.vue
+│       ├── Input.vue
+│       ├── Textarea.vue
+│       └── Dialog.vue
+├── composables/
+│   ├── useTodos.ts       # Todo 数据管理
+│   ├── useNotes.ts       # 便签数据管理
+│   └── useSettings.ts    # 设置管理
+├── types/
+│   └── index.ts          # TypeScript 类型定义
+├── lib/
+│   └── utils.ts          # 工具函数 (cn 类名合并)
+├── styles/
+│   └── index.css         # 全局样式和主题配置
+├── App.vue               # 主应用组件
+└── main.ts               # 应用入口
+```
+
+#### 组件职责
+
+**App.vue** - 主应用
+- 监听托盘事件
+- 管理视图切换 (Todo/便签)
+- 控制对话框显示
+
+**TodoList.vue / NoteList.vue**
+- 显示列表数据
+- 处理项目点击 (emit edit 事件)
+- 处理删除操作
+
+**TodoEditor.vue / NoteEditor.vue**
+- 编辑/新建项目
+- 表单验证
+- 调用 composable 保存数据
+
+**Settings.vue**
+- 主题切换
+- 左键点击行为配置
+- 设置持久化
+
+#### Composables 设计模式
+
+每个 composable 遵循相同的模式：
+```typescript
+export function useXxx() {
+  const data = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+
+  const loadData = async () => {
+    // 调用 Tauri 命令
+  }
+
+  const saveData = async (item) => {
+    // 调用 Tauri 命令
+    // 重新加载数据
+  }
+
+  return { data, loading, error, loadData, saveData }
+}
+```
+
+## 数据流
+
+1. **前端 → 后端**
+   - Vue 组件调用 composable
+   - Composable 使用 `invoke()` 调用 Tauri 命令
+   - Rust 后端处理并访问 Store
+
+2. **后端 → 前端**
+   - Rust 使用 `emit()` 发送事件
+   - Vue 使用 `listen()` 监听事件
+   - 更新 UI 状态
+
+3. **数据存储**
+   - 所有数据保存在 `~/.local/share/com.smile.silto/store.json`
+   - 使用 `tauri-plugin-store` 管理
+   - JSON 格式：{ todos: [], notes: [], settings: {} }
+
+## 主题系统
+
+使用 CSS 变量实现主题切换：
+- 在 `src/styles/index.css` 定义主题变量
+- 使用 `:root` 和 `.dark` 类切换
+- `useSettings` composable 管理主题应用
+
+## 开发规范
+
+### TypeScript 类型
+- 为所有数据定义接口 (在 `src/types/index.ts`)
+- Rust 和 TypeScript 类型保持一致
+- 使用 strict 模式
+
+### 组件规范
+- 使用 `<script setup>` 语法
+- Props 和 Emits 使用 TypeScript 定义
+- 样式使用 Tailwind CSS 类名
+
+### 代码风格
+- Rust: 使用 `rustfmt` 格式化
+- TypeScript/Vue: 使用 2 空格缩进
+- 组件导入使用 `@/` 别名
+
+### 命名约定
+- 组件: PascalCase (TodoList.vue)
+- Composables: camelCase with `use` 前缀 (useTodos.ts)
+- Rust 模块: snake_case
+- TypeScript 接口: PascalCase
+
+## 关键文件位置
+
+### 配置文件
+- `package.json` - 前端依赖和脚本
+- `Cargo.toml` - Rust 依赖
+- `tauri.conf.json` - Tauri 配置 (窗口、托盘、权限)
+- `tailwind.config.js` - Tailwind 配置
+- `vite.config.ts` - Vite 配置 (路径别名)
+- `tsconfig.json` - TypeScript 配置
+
+### 主要入口
+- `src/main.ts` - Vue 应用入口
+- `src-tauri/src/main.rs` - Rust 二进制入口
+- `src-tauri/src/lib.rs` - Rust 库入口
+
+## 开发命令
+
+```bash
+# 开发模式
+pnpm tauri dev
+
+# 构建应用
+pnpm tauri build
+
+# 安装依赖
+pnpm install
+
+# 类型检查
+pnpm vue-tsc --noEmit
+```
+
+## 窗口配置
+
+在 `tauri.conf.json` 中配置：
+- `visible: false` - 启动时隐藏
+- `decorations: false` - 无窗口装饰
+- `skipTaskbar: true` - 不显示在任务栏
+- `width: 400, height: 600` - 窗口大小
+
+## 未来扩展建议
+
+1. **功能增强**
+   - Todo 优先级和分类
+   - 便签标签系统
+   - 全局搜索
+
+2. **数据管理**
+   - 数据导入/导出
+   - 云同步支持
+   - 数据备份
+
+3. **用户体验**
+   - 快捷键支持
+   - 拖拽排序
+   - 批量操作
+
+4. **性能优化**
+   - 虚拟滚动
+   - 懒加载
+   - 优化通知检查频率
