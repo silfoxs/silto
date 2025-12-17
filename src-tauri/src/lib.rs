@@ -4,6 +4,7 @@ mod notification;
 mod tray;
 
 use notification::NotificationState;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -16,6 +17,18 @@ pub fn run() {
         .setup(|app| {
             // 创建系统托盘
             tray::create_tray(app.handle())?;
+
+            // Apply vibrancy (MacOS only)
+            if let Some(window) = app.get_webview_window("main") {
+                use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+                apply_vibrancy(
+                    &window,
+                    NSVisualEffectMaterial::UnderWindowBackground,
+                    None,
+                    Some(16.0),
+                )
+                .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+            }
 
             // 启动提醒检查任务
             let app_handle = app.handle().clone();

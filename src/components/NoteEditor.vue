@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'radix-vue'
-import { X } from 'lucide-vue-next'
-import Input from '@/components/ui/Input.vue'
-import Textarea from '@/components/ui/Textarea.vue'
-import Button from '@/components/ui/Button.vue'
+import { ref } from 'vue'
+import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle } from 'radix-vue'
+import { Maximize } from 'lucide-vue-next'
+import NoteForm from '@/components/NoteForm.vue'
 import { useNotes } from '@/composables/useNotes'
 import type { Note } from '@/types'
 
@@ -15,82 +13,68 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
+  (e: 'open-side-editor', data: { type: 'note', data: any }): void
 }>()
 
 const { saveNote } = useNotes()
+const formRef = ref<any>(null)
 
-const title = ref('')
-const content = ref('')
-
-watch(() => props.note, (newNote) => {
-  if (newNote) {
-    title.value = newNote.title
-    content.value = newNote.content
-  } else {
-    title.value = ''
-    content.value = ''
-  }
-}, { immediate: true })
-
-const handleSave = async () => {
-  if (!title.value.trim() && !content.value.trim()) {
-    alert('请输入标题或内容')
-    return
-  }
-
-  const now = new Date().toISOString()
-  const note: Note = {
-    id: props.note?.id || crypto.randomUUID(),
-    title: title.value,
-    content: content.value,
-    created_at: props.note?.created_at || now,
-    updated_at: now,
-  }
-
-  await saveNote(note)
+const handleSave = async (noteData: Partial<Note>) => {
+  await saveNote(noteData as Note)
   emit('update:open', false)
 }
 
 const handleClose = () => {
   emit('update:open', false)
 }
+
+const handleExpand = (formData?: any) => {
+  let data = formData
+  
+  if (!data && formRef.value) {
+    data = {
+      title: formRef.value.title,
+      content: formRef.value.content
+    }
+  }
+
+  emit('open-side-editor', {
+    type: 'note',
+    data: {
+      ...props.note,
+      ...data
+    }
+  })
+  emit('update:open', false)
+}
 </script>
 
 <template>
   <DialogRoot :open="open" @update:open="emit('update:open', $event)">
-    <DialogPortal>
+    <DialogPortal to="#app-portal">
       <DialogOverlay class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-      <DialogContent class="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg">
-        <div class="flex items-center justify-between">
+      <DialogContent class="fixed bottom-4 left-4 right-4 z-50 grid gap-4 border border-white/20 bg-background/90 backdrop-blur-xl p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom-[48%] data-[state=open]:slide-in-from-bottom-[48%] rounded-3xl">
+        <div class="flex items-center justify-between mb-4">
           <DialogTitle class="text-lg font-semibold">
             {{ note ? '编辑便签' : '新建便签' }}
           </DialogTitle>
-          <DialogClose class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100">
-            <X class="h-4 w-4" />
-            <span class="sr-only">关闭</span>
-          </DialogClose>
+          <button 
+            @click="handleExpand()"
+            class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 p-1 hover:bg-white/10"
+          >
+            <Maximize class="h-4 w-4" />
+            <span class="sr-only">全屏编辑</span>
+          </button>
         </div>
 
-        <div class="space-y-4">
-          <div>
-            <label class="text-sm font-medium mb-2 block">标题</label>
-            <Input v-model="title" placeholder="输入标题..." />
-          </div>
-
-          <div>
-            <label class="text-sm font-medium mb-2 block">内容</label>
-            <Textarea v-model="content" placeholder="输入内容..." rows="8" />
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 mt-2">
-          <Button variant="outline" @click="handleClose">
-            取消
-          </Button>
-          <Button @click="handleSave">
-            保存
-          </Button>
-        </div>
+        <NoteForm 
+          ref="formRef"
+          :note="note"
+          :is-rich-text="false"
+          @save="handleSave" 
+          @cancel="handleClose" 
+          @expand="handleExpand"
+        />
       </DialogContent>
     </DialogPortal>
   </DialogRoot>

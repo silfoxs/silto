@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { useTodos } from '@/composables/useTodos'
 import { Check, Clock, Trash2 } from 'lucide-vue-next'
 import type { Todo } from '@/types'
+import { stripHtml } from '@/lib/utils'
 
 const { activeTodos, completedTodos, loadTodos, toggleTodo, deleteTodo } = useTodos()
 
@@ -56,7 +57,7 @@ const formatDate = (dateStr: string) => {
             <div class="flex-1 min-w-0">
               <h3 class="font-medium text-sm truncate">{{ todo.title }}</h3>
               <p v-if="todo.content" class="text-xs text-muted-foreground mt-1 line-clamp-2">
-                {{ todo.content }}
+                {{ stripHtml(todo.content) }}
               </p>
               <div v-if="todo.remind_time" class="flex items-center gap-1 mt-2 text-xs text-primary">
                 <Clock class="w-3 h-3" />
@@ -93,7 +94,7 @@ const formatDate = (dateStr: string) => {
               <div class="flex-1 min-w-0">
                 <h3 class="font-medium text-sm truncate line-through">{{ todo.title }}</h3>
                 <p v-if="todo.content" class="text-xs text-muted-foreground mt-1 line-clamp-2 line-through">
-                  {{ todo.content }}
+                  {{ stripHtml(todo.content) }}
                 </p>
               </div>
               <button

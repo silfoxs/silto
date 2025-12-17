@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { useNotes } from '@/composables/useNotes'
 import { StickyNote, Trash2 } from 'lucide-vue-next'
 import type { Note } from '@/types'
+import { stripHtml } from '@/lib/utils'
 
 const { sortedNotes, loadNotes, deleteNote } = useNotes()
 
@@ -44,7 +45,7 @@ const formatDate = (dateStr: string) => {
           <div class="flex-1 min-w-0">
             <h3 class="font-medium text-sm truncate">{{ note.title || '无标题' }}</h3>
             <p v-if="note.content" class="text-xs text-muted-foreground mt-1.5 line-clamp-3">
-              {{ note.content }}
+              {{ stripHtml(note.content) }}
             </p>
             <p class="text-xs text-muted-foreground mt-2">
               {{ formatDate(note.updated_at) }}
