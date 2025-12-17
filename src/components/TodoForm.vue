@@ -9,7 +9,6 @@ import type { Todo } from '@/types'
 
 const props = defineProps<{
   todo?: Todo | null
-  allowExpand?: boolean
   initialTitle?: string
   initialContent?: string
   initialRemindTime?: string
@@ -19,7 +18,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'save', todo: Partial<Todo>): void
   (e: 'cancel'): void
-  (e: 'expand', data: { title: string, content: string, remindTime: string }): void
 }>()
 
 const title = ref('')
@@ -29,9 +27,12 @@ const remindTime = ref('')
 // Initialize from props
 onMounted(() => {
   if (props.todo) {
-    title.value = props.todo.title
-    content.value = props.todo.content
-    remindTime.value = props.todo.remind_time ? new Date(props.todo.remind_time).toISOString().slice(0, 16) : ''
+    // Initialize from props (handle both DB format and editor partial format)
+    title.value = props.todo.title || ''
+    content.value = props.todo.content || ''
+    // Handle both snake_case (DB) and camelCase (Editor pass-through)
+    const rt = (props.todo as any).remind_time || (props.todo as any).remindTime
+    remindTime.value = rt ? new Date(rt).toISOString().slice(0, 16) : ''
   } else {
     // Or initialize from passed initial values (for detached mode)
     title.value = props.initialTitle || ''
@@ -66,13 +67,7 @@ const handleSave = () => {
   })
 }
 
-const handleExpand = () => {
-  emit('expand', {
-    title: title.value,
-    content: content.value,
-    remindTime: remindTime.value
-  })
-}
+
 
 defineExpose({
   title,
@@ -85,15 +80,13 @@ defineExpose({
   <div class="flex flex-col h-full">
     <div class="flex-1 space-y-4 overflow-y-auto p-1">
       <div>
-        <label class="text-sm font-medium mb-2 block">内容</label>
+
         
         <!-- Rich Text Mode -->
         <RichTextEditor 
           v-if="isRichText !== false"
           v-model="content" 
           placeholder="输入内容..." 
-          :allow-expand="allowExpand"
-          @expand="handleExpand"
         />
         
         <!-- Plain Text Mode -->
