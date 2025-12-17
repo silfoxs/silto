@@ -136,13 +136,6 @@ silto/
 
 详细开发指南请查看 [.cursorrules](.cursorrules) 和 [ARCHITECTURE.md](ARCHITECTURE.md)
 
-## 🐛 已知问题
-
-- ~~Input/Textarea 组件 v-model 不工作~~ ✅ 已修复
-- 自定义图标格式需要手动调整
-
-历史问题请查看 [BUGFIX-save-issue.md](BUGFIX-save-issue.md)
-
 ## 🗺️ 路线图
 
 - [ ] 添加 Todo 优先级功能

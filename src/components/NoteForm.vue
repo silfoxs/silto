@@ -7,7 +7,6 @@ import type { Note } from '@/types'
 
 const props = defineProps<{
   note?: Note | null
-  allowExpand?: boolean
   initialTitle?: string
   initialContent?: string
   isRichText?: boolean
@@ -16,7 +15,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'save', note: Partial<Note>): void
   (e: 'cancel'): void
-  (e: 'expand', data: { title: string, content: string }): void
 }>()
 
 const title = ref('')
@@ -24,9 +22,11 @@ const content = ref('')
 
 onMounted(() => {
   if (props.note) {
-    title.value = props.note.title
-    content.value = props.note.content
+    // Initialize from props (handle both DB format and editor partial format)
+    title.value = props.note.title || ''
+    content.value = props.note.content || ''
   } else {
+    // Or initialize from passed initial values
     title.value = props.initialTitle || ''
     content.value = props.initialContent || ''
   }
@@ -57,12 +57,7 @@ const handleSave = () => {
   })
 }
 
-const handleExpand = () => {
-  emit('expand', {
-    title: title.value,
-    content: content.value
-  })
-}
+
 
 defineExpose({
   title,
@@ -74,14 +69,12 @@ defineExpose({
   <div class="flex flex-col h-full">
     <div class="flex-1 space-y-4 overflow-y-auto p-1">
       <div>
-        <label class="text-sm font-medium mb-2 block">内容</label>
+
         
         <RichTextEditor 
           v-if="isRichText !== false"
           v-model="content" 
           placeholder="输入内容..." 
-          :allow-expand="allowExpand"
-          @expand="handleExpand"
         />
         
         <textarea
