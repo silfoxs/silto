@@ -4,7 +4,9 @@ import { useTodos } from '@/composables/useTodos'
 import { Check, Clock, Trash2 } from 'lucide-vue-next'
 import type { Todo } from '@/types'
 import { stripHtml } from '@/lib/utils'
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const { activeTodos, completedTodos, loadTodos, toggleTodo, deleteTodo } = useTodos()
 
 const emit = defineEmits<{
@@ -20,14 +22,14 @@ const handleToggle = async (todo: Todo) => {
 }
 
 const handleDelete = async (id: string) => {
-  if (confirm('确定要删除这个 Todo 吗？')) {
+  if (confirm(t('todo.deleteConfirm'))) {
     await deleteTodo(id)
   }
 }
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr)
-  return date.toLocaleString('zh-CN', { 
+  return date.toLocaleString(locale.value, { 
     month: '2-digit', 
     day: '2-digit', 
     hour: '2-digit', 
@@ -76,7 +78,7 @@ const formatDate = (dateStr: string) => {
 
       <!-- Completed Todos -->
       <div v-if="completedTodos.length > 0" class="mt-4">
-        <h3 class="text-xs text-muted-foreground mb-2 px-1">已完成</h3>
+        <h3 class="text-xs text-muted-foreground mb-2 px-1">{{ $t('todo.completed') }}</h3>
         <div class="space-y-2">
           <div 
             v-for="todo in completedTodos" 
@@ -113,8 +115,8 @@ const formatDate = (dateStr: string) => {
         <div class="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <Check class="w-8 h-8 text-muted-foreground" />
         </div>
-        <p class="text-sm text-muted-foreground">还没有任何 Todo</p>
-        <p class="text-xs text-muted-foreground mt-1">点击下方按钮添加新的任务</p>
+        <p class="text-sm text-muted-foreground">{{ $t('todo.emptyState') }}</p>
+        <p class="text-xs text-muted-foreground mt-1">{{ $t('todo.emptyStateSub') }}</p>
       </div>
     </div>
   </div>

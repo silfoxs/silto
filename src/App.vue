@@ -11,7 +11,9 @@ import Button from '@/components/ui/Button.vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSettings } from '@/composables/useSettings'
 import type { Todo, Note } from '@/types'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const { settings } = useSettings()
 
 const activeView = ref<'todo' | 'note'>('todo')
@@ -22,7 +24,7 @@ const editingTodo = ref<Todo | null>(null)
 const editingNote = ref<Note | null>(null)
 
 const viewTitle = computed(() => {
-  return activeView.value === 'todo' ? 'Todo' : '便签'
+  return activeView.value === 'todo' ? 'Todo' : t('settings.noteList')
 })
 
 // 监听托盘事件
@@ -110,7 +112,7 @@ const handleEditNote = (note: Note) => {
             value="note"
             class="px-3 h-full text-[10px] font-bold rounded-md transition-all duration-300 data-[state=inactive]:text-white/40 hover:data-[state=inactive]:text-white hover:data-[state=inactive]:bg-white/5 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.2)]"
           >
-            便签
+            {{ $t('settings.noteList') }}
           </TabsTrigger>
         </TabsList>
       </div>
@@ -133,7 +135,7 @@ const handleEditNote = (note: Note) => {
         @click="handleAddNew"
       >
         <Plus class="w-5 h-5 mr-2" />
-        {{ activeView === 'todo' ? '新建 Todo' : '新建便签' }}
+        {{ activeView === 'todo' ? $t('todo.newTodo') : $t('note.newNote') }}
       </Button>
     </div>
 

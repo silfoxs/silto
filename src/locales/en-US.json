@@ -1,0 +1,49 @@
+{
+    "common": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "confirm": "Confirm",
+        "done": "Done",
+        "close": "Close",
+        "untitled": "Untitled",
+        "deleteConfirm": "Are you sure you want to delete this?"
+    },
+    "settings": {
+        "title": "Settings",
+        "theme": "Theme",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "language": "Language",
+        "leftClickAction": "Left-click Tray Icon Action",
+        "todoList": "Todo List",
+        "noteList": "Note List"
+    },
+    "todo": {
+        "titleLabel": "Title (Optional)",
+        "titlePlaceholder": "Enter title...",
+        "contentPlaceholder": "Enter content...",
+        "remindTime": "Reminder (Optional)",
+        "remindTimePlaceholder": "Set reminder time...",
+        "emptyState": "No Todos yet",
+        "emptyStateSub": "Click the button below to add a new task",
+        "completed": "Completed",
+        "deleteConfirm": "Are you sure you want to delete this Todo?",
+        "newTodo": "New Todo",
+        "inputError": "Please enter a title or content"
+    },
+    "note": {
+        "titleLabel": "Title (Optional)",
+        "titlePlaceholder": "Enter title...",
+        "contentPlaceholder": "Enter content...",
+        "emptyState": "No notes yet",
+        "emptyStateSub": "Click the button below to add a new note",
+        "deleteConfirm": "Are you sure you want to delete this note?",
+        "newNote": "New Note",
+        "inputError": "Please enter a title or content"
+    },
+    "locales": {
+        "zh-CN": "Chinese",
+        "en-US": "English"
+    }
+}

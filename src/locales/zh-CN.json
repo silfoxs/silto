@@ -1,0 +1,49 @@
+{
+    "common": {
+        "save": "保存",
+        "cancel": "取消",
+        "delete": "删除",
+        "confirm": "确定",
+        "done": "完成",
+        "close": "关闭",
+        "untitled": "无标题",
+        "deleteConfirm": "确定要删除吗？"
+    },
+    "settings": {
+        "title": "设置",
+        "theme": "主题",
+        "themeLight": "浅色",
+        "themeDark": "深色",
+        "language": "语言",
+        "leftClickAction": "托盘左键点击时显示",
+        "todoList": "Todo 列表",
+        "noteList": "便签列表"
+    },
+    "todo": {
+        "titleLabel": "标题（可选）",
+        "titlePlaceholder": "输入标题...",
+        "contentPlaceholder": "输入内容...",
+        "remindTime": "提醒时间（可选）",
+        "remindTimePlaceholder": "设置提醒时间...",
+        "emptyState": "还没有任何 Todo",
+        "emptyStateSub": "点击下方按钮添加新的任务",
+        "completed": "已完成",
+        "deleteConfirm": "确定要删除这个 Todo 吗？",
+        "newTodo": "新建代办",
+        "inputError": "请输入标题或内容"
+    },
+    "note": {
+        "titleLabel": "标题（可选）",
+        "titlePlaceholder": "输入标题...",
+        "contentPlaceholder": "输入内容...",
+        "emptyState": "还没有任何便签",
+        "emptyStateSub": "点击下方按钮添加新的便签",
+        "deleteConfirm": "确定要删除这个便签吗？",
+        "newNote": "新建便签",
+        "inputError": "请输入标题或内容"
+    },
+    "locales": {
+        "zh-CN": "中文",
+        "en-US": "English"
+    }
+}

@@ -4,7 +4,9 @@ import { useNotes } from '@/composables/useNotes'
 import { StickyNote, Trash2 } from 'lucide-vue-next'
 import type { Note } from '@/types'
 import { stripHtml } from '@/lib/utils'
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const { sortedNotes, loadNotes, deleteNote } = useNotes()
 
 const emit = defineEmits<{
@@ -16,14 +18,14 @@ onMounted(() => {
 })
 
 const handleDelete = async (id: string) => {
-  if (confirm('确定要删除这个便签吗？')) {
+  if (confirm(t('note.deleteConfirm'))) {
     await deleteNote(id)
   }
 }
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr)
-  return date.toLocaleString('zh-CN', { 
+  return date.toLocaleString(locale.value, { 
     month: '2-digit', 
     day: '2-digit', 
     hour: '2-digit', 
@@ -43,7 +45,7 @@ const formatDate = (dateStr: string) => {
       >
         <div class="flex items-start gap-3">
           <div class="flex-1 min-w-0">
-            <h3 class="font-medium text-sm truncate">{{ note.title || '无标题' }}</h3>
+            <h3 class="font-medium text-sm truncate">{{ note.title || $t('common.untitled') }}</h3>
             <p v-if="note.content" class="text-xs text-muted-foreground mt-1.5 line-clamp-3">
               {{ stripHtml(note.content) }}
             </p>
@@ -65,8 +67,8 @@ const formatDate = (dateStr: string) => {
         <div class="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <StickyNote class="w-8 h-8 text-muted-foreground" />
         </div>
-        <p class="text-sm text-muted-foreground">还没有任何便签</p>
-        <p class="text-xs text-muted-foreground mt-1">点击下方按钮添加新的便签</p>
+        <p class="text-sm text-muted-foreground">{{ $t('note.emptyState') }}</p>
+        <p class="text-xs text-muted-foreground mt-1">{{ $t('note.emptyStateSub') }}</p>
       </div>
     </div>
   </div>
