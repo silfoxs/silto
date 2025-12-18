@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'radix-vue'
 import { X, Moon, Sun, Languages, RefreshCw } from 'lucide-vue-next'
 import { check } from '@tauri-apps/plugin-updater'
-import { message } from '@tauri-apps/plugin-dialog'
+import { ask, message } from '@tauri-apps/plugin-dialog'
 import Button from '@/components/ui/Button.vue'
 import { useSettings } from '@/composables/useSettings'
 import { useI18n } from 'vue-i18n'
@@ -43,7 +43,7 @@ const handleCheckUpdate = async () => {
   try {
     const update = await check()
     if (update) {
-      const confirmed = await message(t('settings.updateAvailable'), {
+      const confirmed = await ask(t('settings.updateAvailable'), {
         title: t('settings.checkUpdate'),
         kind: 'info',
         okLabel: t('common.confirm'),
