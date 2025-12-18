@@ -44,7 +44,7 @@ const formatDate = (dateStr: string) => {
         <div 
           v-for="todo in activeTodos" 
           :key="todo.id"
-          class="group p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer animate-slide-in"
+          class="group p-3 rounded-xl border border-white/10 bg-white/5 dark:bg-white/5 backdrop-blur-md hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer animate-slide-in shadow-sm hover:shadow-md"
           @click="emit('edit', todo)"
         >
           <div class="flex items-center gap-3">
@@ -81,7 +81,7 @@ const formatDate = (dateStr: string) => {
           <div 
             v-for="todo in completedTodos" 
             :key="todo.id"
-            class="group p-3 rounded-lg border bg-muted/30 hover:bg-accent/40 transition-all cursor-pointer opacity-60 hover:opacity-100"
+            class="group p-3 rounded-xl border border-white/5 bg-white/5 dark:bg-white/5 backdrop-blur-sm hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer opacity-60 hover:opacity-100"
             @click="emit('edit', todo)"
           >
             <div class="flex items-center gap-3">

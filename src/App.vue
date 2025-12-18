@@ -99,11 +99,17 @@ const handleEditNote = (note: Note) => {
         >
           <SettingsIcon class="w-4 h-4" />
         </Button>
-        <TabsList class="bg-black/20">
-          <TabsTrigger value="todo">
+        <TabsList class="bg-black/20 dark:bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl p-1 shadow-inner group">
+          <TabsTrigger 
+            value="todo"
+            class="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all duration-300 data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-white/10 data-[state=active]:bg-white/90 data-[state=active]:text-black data-[state=active]:shadow-[0_2px_8px_rgba(255,255,255,0.3)] dark:data-[state=active]:bg-white/20 dark:data-[state=active]:text-white dark:data-[state=active]:border dark:data-[state=active]:border-white/20"
+          >
             Todo
           </TabsTrigger>
-          <TabsTrigger value="note">
+          <TabsTrigger 
+            value="note"
+            class="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all duration-300 data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-white/10 data-[state=active]:bg-white/90 data-[state=active]:text-black data-[state=active]:shadow-[0_2px_8px_rgba(255,255,255,0.3)] dark:data-[state=active]:bg-white/20 dark:data-[state=active]:text-white dark:data-[state=active]:border dark:data-[state=active]:border-white/20"
+          >
             便签
           </TabsTrigger>
         </TabsList>
