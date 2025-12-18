@@ -75,8 +75,18 @@ const handleEditNote = (note: Note) => {
     v-model="activeView"
     class="flex flex-col h-screen bg-background/80 dark:bg-black/80 backdrop-blur-xl text-foreground rounded-2xl border border-white/20 overflow-hidden relative"
   >
+    <!-- Gradient Blur Layers -->
+    <div class="absolute top-0 left-0 right-0 h-20 z-10 pointer-events-none overflow-hidden select-none">
+      <div class="absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_25%)]"></div>
+      <div class="absolute inset-0 backdrop-blur-[4px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_50%)]"></div>
+      <div class="absolute inset-0 backdrop-blur-[8px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_75%)]"></div>
+      <div class="absolute inset-0 backdrop-blur-[16px] [mask-image:linear-gradient(to_bottom,black_0%,black_25%,transparent_100%)]"></div>
+      <div class="absolute inset-0 backdrop-blur-[24px] [mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)]"></div>
+      <div class="absolute inset-0 backdrop-blur-[40px] [mask-image:linear-gradient(to_bottom,black_0%,black_75%,transparent_100%)]"></div>
+    </div>
+
     <!-- Title Bar -->
-    <div class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5 backdrop-blur-xl z-20" data-tauri-drag-region>
+    <div class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5 z-20" data-tauri-drag-region>
       <div class="flex items-center gap-3 pointer-events-none">
         <h1 class="text-lg font-semibold">{{ viewTitle }}</h1>
       </div>
