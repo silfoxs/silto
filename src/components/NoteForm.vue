@@ -84,7 +84,7 @@ defineExpose({
         <textarea
           v-else
           v-model="content"
-          class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black dark:focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50 min-h-[150px] resize-none"
+          class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black/20 dark:focus-visible:ring-white/30 disabled:cursor-not-allowed disabled:opacity-50 min-h-[150px] resize-none"
           :placeholder="$t('note.contentPlaceholder')"
         ></textarea>
       </div>
