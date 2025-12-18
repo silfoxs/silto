@@ -45,7 +45,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="relative w-full border border-input rounded-md bg-transparent transition-colors focus-within:ring-1 focus-within:ring-ring">
+  <div class="relative w-full border border-input rounded-md bg-transparent transition-colors focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white">
     <!-- Compact Editor -->
     <div class="relative min-h-[120px] p-3">
       <EditorContent :editor="editor" />
