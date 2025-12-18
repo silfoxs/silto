@@ -48,7 +48,8 @@ const handleSave = () => {
     return
   }
 
-  const finalTitle = title.value.trim() || (content.value.trim() ? content.value.trim().slice(0, 5) : t('note.newNote'))
+  const plainContent = content.value.replace(/<[^>]*>/g, '').trim()
+  const finalTitle = title.value.trim() || (plainContent ? plainContent.slice(0, 10) : t('note.newNote'))
   const now = new Date().toISOString()
 
   emit('save', {
