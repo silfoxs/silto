@@ -7,6 +7,7 @@ import NoteList from '@/components/NoteList.vue'
 import TodoEditor from '@/components/TodoEditor.vue'
 import NoteEditor from '@/components/NoteEditor.vue'
 import Settings from '@/components/Settings.vue'
+import WindowControls from '@/components/WindowControls.vue'
 import Button from '@/components/ui/Button.vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSettings } from '@/composables/useSettings'
@@ -88,16 +89,18 @@ const handleEditNote = (note: Note) => {
     </div>
 
     <!-- Title Bar -->
-    <div class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-20" data-tauri-drag-region>
-      <div class="flex items-center gap-3 pointer-events-none">
-        <h1 class="text-lg font-semibold">{{ viewTitle }}</h1>
+    <div class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between z-20 px-4 pt-4 pb-2" data-tauri-drag-region>
+      <div class="flex items-center gap-3">
+        <WindowControls />
+        <h1 class="text-xl font-bold select-none text-foreground/90 pointer-events-none">{{ viewTitle }}</h1>
       </div>
+      
       <div class="flex items-center gap-2">
         <Button 
           variant="ghost" 
           size="icon"
           @click="showSettings = true"
-          class="hover:bg-white/10"
+          class="hover:bg-white/10 w-8 h-8 rounded-lg"
         >
           <SettingsIcon class="w-4 h-4" />
         </Button>
