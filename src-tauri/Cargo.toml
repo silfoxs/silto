@@ -30,4 +30,7 @@ tokio = { version = "1", features = ["time"] }
 image = "0.25.9"
 window-vibrancy = "0.7.1"
 
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"
+
 
