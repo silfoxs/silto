@@ -16,8 +16,8 @@
         "themeDark": "深色",
         "language": "语言",
         "leftClickAction": "托盘左键点击时显示",
-        "todoList": "Todo 列表",
-        "noteList": "便签列表"
+        "todoList": "待办",
+        "noteList": "便签"
     },
     "todo": {
         "titleLabel": "标题（可选）",
@@ -25,11 +25,11 @@
         "contentPlaceholder": "输入内容...",
         "remindTime": "提醒时间（可选）",
         "remindTimePlaceholder": "设置提醒时间...",
-        "emptyState": "还没有任何 Todo",
+        "emptyState": "还没有任何待办",
         "emptyStateSub": "点击下方按钮添加新的任务",
         "completed": "已完成",
-        "deleteConfirm": "确定要删除这个 Todo 吗？",
-        "newTodo": "新建代办",
+        "deleteConfirm": "确定要删除这个待办吗？",
+        "newTodo": "新建待办",
         "inputError": "请输入标题或内容"
     },
     "note": {

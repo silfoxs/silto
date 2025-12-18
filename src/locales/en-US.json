@@ -16,8 +16,8 @@
         "themeDark": "Dark",
         "language": "Language",
         "leftClickAction": "Left-click Tray Icon Action",
-        "todoList": "Todo List",
-        "noteList": "Note List"
+        "todoList": "Todo",
+        "noteList": "Note"
     },
     "todo": {
         "titleLabel": "Title (Optional)",
