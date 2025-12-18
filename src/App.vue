@@ -99,16 +99,16 @@ const handleEditNote = (note: Note) => {
         >
           <SettingsIcon class="w-4 h-4" />
         </Button>
-        <TabsList class="bg-black/20 dark:bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl p-1 shadow-inner group">
+        <TabsList class="bg-black/30 dark:bg-black/60 backdrop-blur-xl border border-white/20 rounded-lg p-0.5 h-7 overflow-hidden group shadow-inner">
           <TabsTrigger 
             value="todo"
-            class="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all duration-300 data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-white/10 data-[state=active]:bg-white/90 data-[state=active]:text-black data-[state=active]:shadow-[0_2px_8px_rgba(255,255,255,0.3)] dark:data-[state=active]:bg-white/20 dark:data-[state=active]:text-white dark:data-[state=active]:border dark:data-[state=active]:border-white/20"
+            class="px-3 h-full text-[10px] font-bold rounded-md transition-all duration-300 data-[state=inactive]:text-white/40 hover:data-[state=inactive]:text-white hover:data-[state=inactive]:bg-white/5 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.2)]"
           >
             Todo
           </TabsTrigger>
           <TabsTrigger 
             value="note"
-            class="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all duration-300 data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-white/10 data-[state=active]:bg-white/90 data-[state=active]:text-black data-[state=active]:shadow-[0_2px_8px_rgba(255,255,255,0.3)] dark:data-[state=active]:bg-white/20 dark:data-[state=active]:text-white dark:data-[state=active]:border dark:data-[state=active]:border-white/20"
+            class="px-3 h-full text-[10px] font-bold rounded-md transition-all duration-300 data-[state=inactive]:text-white/40 hover:data-[state=inactive]:text-white hover:data-[state=inactive]:bg-white/5 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.2)]"
           >
             便签
           </TabsTrigger>
