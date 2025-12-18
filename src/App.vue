@@ -22,7 +22,7 @@ const editingTodo = ref<Todo | null>(null)
 const editingNote = ref<Note | null>(null)
 
 const viewTitle = computed(() => {
-  return activeView.value === 'todo' ? 'Todo 列表' : '便签列表'
+  return activeView.value === 'todo' ? 'Todo' : '便签'
 })
 
 // 监听托盘事件

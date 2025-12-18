@@ -47,9 +47,9 @@ const formatDate = (dateStr: string) => {
           class="group p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer animate-slide-in"
           @click="emit('edit', todo)"
         >
-          <div class="flex items-start gap-3">
+          <div class="flex items-center gap-3">
             <button
-              class="mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 border-primary hover:bg-primary/10 transition-colors"
+              class="flex-shrink-0 w-5 h-5 rounded border-2 border-primary hover:bg-primary/10 transition-colors"
               @click.stop="handleToggle(todo)"
             >
               <Check v-if="todo.completed" class="w-4 h-4 text-primary" />
@@ -81,12 +81,12 @@ const formatDate = (dateStr: string) => {
           <div 
             v-for="todo in completedTodos" 
             :key="todo.id"
-            class="group p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer opacity-60"
+            class="group p-3 rounded-lg border bg-muted/30 hover:bg-accent/40 transition-all cursor-pointer opacity-60 hover:opacity-100"
             @click="emit('edit', todo)"
           >
-            <div class="flex items-start gap-3">
+            <div class="flex items-center gap-3">
               <button
-                class="mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 bg-primary border-primary hover:bg-primary/80 transition-colors flex items-center justify-center"
+                class="flex-shrink-0 w-5 h-5 rounded border-2 bg-primary border-primary hover:bg-primary/80 transition-colors flex items-center justify-center"
                 @click.stop="handleToggle(todo)"
               >
                 <Check class="w-4 h-4 text-primary-foreground" />
