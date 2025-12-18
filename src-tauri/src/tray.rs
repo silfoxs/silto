@@ -28,6 +28,7 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
         .icon(icon)
         .icon_as_template(true)
         .menu(&menu)
+        .menu_on_left_click(false)
         .on_menu_event(move |app, event| match event.id().as_ref() {
             "add_todo" => {
                 app.emit("tray-add-todo", ()).unwrap();
