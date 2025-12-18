@@ -73,11 +73,10 @@ const handleEditNote = (note: Note) => {
   <!-- Main Container: Transparent + Rounded + Border -->
   <Tabs
     v-model="activeView"
-    class="flex flex-col h-screen bg-background/80 dark:bg-black/80 backdrop-blur-xl text-foreground rounded-2xl border border-white/20 overflow-hidden"
+    class="flex flex-col h-screen bg-background/80 dark:bg-black/80 backdrop-blur-xl text-foreground rounded-2xl border border-white/20 overflow-hidden relative"
   >
     <!-- Title Bar -->
-    <!-- Use bg-transparent or very light overlay -->
-    <div class="titlebar flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5" data-tauri-drag-region>
+    <div class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5 backdrop-blur-xl z-20" data-tauri-drag-region>
       <div class="flex items-center gap-3 pointer-events-none">
         <h1 class="text-lg font-semibold">{{ viewTitle }}</h1>
       </div>
@@ -102,7 +101,7 @@ const handleEditNote = (note: Note) => {
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 overflow-hidden">
+    <div class="flex-1 min-h-0">
       <TabsContent value="todo" class="h-full mt-0">
         <TodoList @edit="handleEditTodo" />
       </TabsContent>
@@ -112,7 +111,7 @@ const handleEditNote = (note: Note) => {
     </div>
 
     <!-- Bottom Action Bar -->
-    <div class="border-t border-white/10 bg-white/5 p-3">
+    <div class="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-white/5 p-3 backdrop-blur-xl z-20">
       <Button 
         class="w-full bg-primary/90 hover:bg-primary shadow-lg" 
         @click="handleAddNew"

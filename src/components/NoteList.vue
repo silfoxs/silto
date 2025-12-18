@@ -33,8 +33,8 @@ const formatDate = (dateStr: string) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
-    <div class="flex-1 overflow-y-auto p-4 space-y-2">
+  <div class="flex flex-col h-full overflow-hidden">
+    <div class="flex-1 overflow-y-auto p-4 pt-20 pb-20 space-y-2">
       <div 
         v-for="note in sortedNotes" 
         :key="note.id"
