@@ -54,10 +54,10 @@ const formatDate = (dateStr: string) => {
             </p>
           </div>
           <button
-            class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
+            class="opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-destructive hover:text-white dark:hover:bg-red-500 rounded-md"
             @click.stop="handleDelete(note.id)"
           >
-            <Trash2 class="w-4 h-4 text-destructive" />
+            <Trash2 class="w-4 h-4" />
           </button>
         </div>
       </div>
