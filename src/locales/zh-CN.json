@@ -17,7 +17,11 @@
         "language": "语言",
         "leftClickAction": "托盘左键点击时显示",
         "todoList": "待办",
-        "noteList": "便签"
+        "noteList": "便签",
+        "checkUpdate": "检查更新",
+        "checking": "正在检查...",
+        "noUpdate": "当前已是最新版本",
+        "updateAvailable": "发现新版本"
     },
     "todo": {
         "titleLabel": "标题（可选）",
