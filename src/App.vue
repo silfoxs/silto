@@ -113,7 +113,7 @@ const handleEditNote = (note: Note) => {
     <!-- Bottom Action Bar: Floating Liquid Glass -->
     <div class="absolute bottom-6 left-0 right-0 px-6 pb-2 z-20 pointer-events-none">
       <Button 
-        class="w-full h-12 bg-white/10 dark:bg-white/5 backdrop-blur-2xl backdrop-saturate-[1.8] backdrop-contrast-[1.1] border-2 border-white/30 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:bg-white/20 hover:scale-[1.05] active:scale-95 transition-all duration-300 pointer-events-auto text-foreground font-semibold" 
+        class="w-full h-12 bg-white/10 dark:bg-white/5 backdrop-blur-2xl backdrop-saturate-[1.8] backdrop-contrast-[1.1] border-2 border-white/30 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:bg-white/20 hover:scale-[1.05] active:scale-95 transition-all duration-300 pointer-events-auto text-foreground font-semibold" 
         @click="handleAddNew"
       >
         <Plus class="w-5 h-5 mr-2" />
