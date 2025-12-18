@@ -35,7 +35,7 @@ const handleClose = () => {
       <DialogContent class="fixed bottom-4 left-4 right-4 z-50 grid gap-2 border border-white/40 bg-white/90 dark:bg-black/40 backdrop-blur-2xl dark:backdrop-saturate-[1.5] p-4 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom-[48%] data-[state=open]:slide-in-from-bottom-[48%] rounded-3xl">
         <div class="flex items-center justify-center">
           <DialogTitle class="text-base font-semibold text-gray-900 dark:text-white">
-            {{ note ? '编辑便签' : '新建便签' }}
+            {{ note ? $t('note.newNote').replace('新建', '编辑') : $t('note.newNote') }}
           </DialogTitle>
         </div>
 
