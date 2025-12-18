@@ -30,12 +30,12 @@ const handleClose = () => {
   <DialogRoot :open="open" @update:open="emit('update:open', $event)">
     <DialogPortal to="#app-portal">
       <DialogOverlay class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-      <DialogContent class="fixed bottom-4 left-4 right-4 z-50 grid gap-4 border border-white/20 bg-background/90 backdrop-blur-xl p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom-[48%] data-[state=open]:slide-in-from-bottom-[48%] rounded-3xl">
+      <DialogContent class="fixed bottom-4 left-4 right-4 z-50 grid gap-4 border border-white/40 bg-white/90 dark:bg-white/30 backdrop-blur-2xl p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom-[48%] data-[state=open]:slide-in-from-bottom-[48%] rounded-3xl">
         <div class="flex items-center justify-between">
-          <DialogTitle class="text-lg font-semibold">
+          <DialogTitle class="text-lg font-semibold text-gray-900 dark:text-white">
             设置
           </DialogTitle>
-          <DialogClose class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100">
+          <DialogClose class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 text-gray-900 dark:text-white">
             <X class="h-4 w-4" />
             <span class="sr-only">关闭</span>
           </DialogClose>
