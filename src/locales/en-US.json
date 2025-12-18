@@ -17,7 +17,11 @@
         "language": "Language",
         "leftClickAction": "Left-click Tray Icon Action",
         "todoList": "Todo",
-        "noteList": "Note"
+        "noteList": "Note",
+        "checkUpdate": "Check for Updates",
+        "checking": "Checking...",
+        "noUpdate": "You are on the latest version",
+        "updateAvailable": "Update available"
     },
     "todo": {
         "titleLabel": "Title (Optional)",

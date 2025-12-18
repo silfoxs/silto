@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'radix-vue'
-import { X, Moon, Sun, Languages } from 'lucide-vue-next'
+import { X, Moon, Sun, Languages, RefreshCw } from 'lucide-vue-next'
+import { check } from '@tauri-apps/plugin-updater'
+import { message } from '@tauri-apps/plugin-dialog'
 import Button from '@/components/ui/Button.vue'
 import { useSettings } from '@/composables/useSettings'
 import { useI18n } from 'vue-i18n'
 
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 
 defineProps<{
   open: boolean
@@ -31,6 +34,42 @@ const handleLanguageChange = (lang: string) => {
 
 const handleClose = () => {
   emit('update:open', false)
+}
+
+const isChecking = ref(false)
+const handleCheckUpdate = async () => {
+  if (isChecking.value) return
+  isChecking.value = true
+  try {
+    const update = await check()
+    if (update) {
+      const confirmed = await message(t('settings.updateAvailable'), {
+        title: t('settings.checkUpdate'),
+        kind: 'info',
+        okLabel: t('common.confirm'),
+        cancelLabel: t('common.cancel'),
+      })
+      if (confirmed) {
+        await update.downloadAndInstall()
+      }
+    } else {
+      await message(t('settings.noUpdate'), {
+        title: t('settings.checkUpdate'),
+        kind: 'info',
+        okLabel: t('common.done'),
+      })
+    }
+  } catch (error) {
+    console.error('Failed to check for updates:', error)
+    // 当检查失败时（通常是因为已经是最新版本或网络问题），提示用户已是最新
+    await message(t('settings.noUpdate'), {
+      title: t('settings.checkUpdate'),
+      kind: 'info',
+      okLabel: t('common.done'),
+    })
+  } finally {
+    isChecking.value = false
+  }
 }
 </script>
 
@@ -115,6 +154,20 @@ const handleClose = () => {
                 {{ $t('locales.en-US') }}
               </Button>
             </div>
+          </div>
+
+          <!-- 检查更新 -->
+          <div>
+            <label class="text-sm font-medium mb-3 block">{{ $t('settings.checkUpdate') }}</label>
+            <Button
+              variant="outline"
+              class="w-full"
+              @click="handleCheckUpdate"
+              :disabled="isChecking"
+            >
+              <RefreshCw :class="['w-4 h-4 mr-2', isChecking ? 'animate-spin' : '']" />
+              {{ isChecking ? $t('settings.checking') : $t('settings.checkUpdate') }}
+            </Button>
           </div>
         </div>
 
