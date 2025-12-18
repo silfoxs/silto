@@ -86,7 +86,7 @@ const handleEditNote = (note: Note) => {
     </div>
 
     <!-- Title Bar -->
-    <div class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5 z-20" data-tauri-drag-region>
+    <div class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-20" data-tauri-drag-region>
       <div class="flex items-center gap-3 pointer-events-none">
         <h1 class="text-lg font-semibold">{{ viewTitle }}</h1>
       </div>
