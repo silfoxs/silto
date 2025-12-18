@@ -110,13 +110,13 @@ const handleEditNote = (note: Note) => {
       </TabsContent>
     </div>
 
-    <!-- Bottom Action Bar -->
-    <div class="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-white/5 p-3 backdrop-blur-xl z-20">
+    <!-- Bottom Action Bar: Floating Liquid Glass -->
+    <div class="absolute bottom-6 left-0 right-0 px-6 pb-2 z-20 pointer-events-none">
       <Button 
-        class="w-full bg-primary/90 hover:bg-primary shadow-lg" 
+        class="w-full h-12 bg-white/10 dark:bg-white/5 border border-white/20 rounded-full shadow-2xl hover:bg-white/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 pointer-events-auto text-foreground font-medium" 
         @click="handleAddNew"
       >
-        <Plus class="w-4 h-4 mr-2" />
+        <Plus class="w-5 h-5 mr-2" />
         {{ activeView === 'todo' ? '新建 Todo' : '新建便签' }}
       </Button>
     </div>
