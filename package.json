@@ -12,6 +12,7 @@
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-updater": "~2.9.0",
     "@tiptap/extension-placeholder": "^3.13.0",
     "@tiptap/starter-kit": "^3.13.0",
     "@tiptap/vue-3": "^3.13.0",
