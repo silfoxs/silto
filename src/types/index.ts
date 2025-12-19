@@ -16,7 +16,7 @@ export interface Note {
 }
 
 export type LeftClickAction = 'todo' | 'note'
-export type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark' | 'system'
 
 export interface Settings {
     left_click_action: LeftClickAction

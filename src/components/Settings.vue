@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'radix-vue'
-import { X, Moon, Sun, Languages, RefreshCw } from 'lucide-vue-next'
+import { X, Moon, Sun, Monitor, Languages, RefreshCw } from 'lucide-vue-next'
 import { check } from '@tauri-apps/plugin-updater'
 import { ask, message } from '@tauri-apps/plugin-dialog'
 import Button from '@/components/ui/Button.vue'
@@ -18,7 +18,7 @@ const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
 }>()
 
-const { settings, saveSettings, toggleTheme } = useSettings()
+const { settings, saveSettings } = useSettings()
 
 const handleLeftClickActionChange = async (action: 'todo' | 'note') => {
   await saveSettings({
@@ -96,7 +96,7 @@ const handleCheckUpdate = async () => {
               <Button
                 :variant="settings.theme === 'light' ? 'default' : 'outline'"
                 class="flex-1"
-                @click="settings.theme === 'dark' ? toggleTheme() : null"
+                @click="saveSettings({ ...settings, theme: 'light' })"
               >
                 <Sun class="w-4 h-4 mr-2" />
                 {{ $t('settings.themeLight') }}
@@ -104,10 +104,18 @@ const handleCheckUpdate = async () => {
               <Button
                 :variant="settings.theme === 'dark' ? 'default' : 'outline'"
                 class="flex-1"
-                @click="settings.theme === 'light' ? toggleTheme() : null"
+                @click="saveSettings({ ...settings, theme: 'dark' })"
               >
                 <Moon class="w-4 h-4 mr-2" />
                 {{ $t('settings.themeDark') }}
+              </Button>
+              <Button
+                :variant="settings.theme === 'system' ? 'default' : 'outline'"
+                class="flex-1"
+                @click="saveSettings({ ...settings, theme: 'system' })"
+              >
+                <Monitor class="w-4 h-4 mr-2" />
+                {{ $t('settings.themeSystem') }}
               </Button>
             </div>
           </div>
