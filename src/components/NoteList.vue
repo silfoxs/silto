@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useNotes } from '@/composables/useNotes'
 import { StickyNote, Trash2 } from 'lucide-vue-next'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { Note } from '@/types'
 import { stripHtml } from '@/lib/utils'
 import { useI18n } from 'vue-i18n'
 
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 const { sortedNotes, loadNotes, deleteNote } = useNotes()
 
 const emit = defineEmits<{
@@ -17,9 +18,18 @@ onMounted(() => {
   loadNotes()
 })
 
-const handleDelete = async (id: string) => {
-  if (confirm(t('note.deleteConfirm'))) {
-    await deleteNote(id)
+const showDeleteConfirm = ref(false)
+const itemToDelete = ref<string | null>(null)
+
+const confirmDelete = (id: string) => {
+  itemToDelete.value = id
+  showDeleteConfirm.value = true
+}
+
+const handleDelete = async () => {
+  if (itemToDelete.value) {
+    await deleteNote(itemToDelete.value)
+    itemToDelete.value = null
   }
 }
 
@@ -55,7 +65,7 @@ const formatDate = (dateStr: string) => {
           </div>
           <button
             class="opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-destructive hover:text-white dark:hover:bg-red-500 rounded-md"
-            @click.stop="handleDelete(note.id)"
+            @click.stop="confirmDelete(note.id)"
           >
             <Trash2 class="w-4 h-4" />
           </button>
@@ -71,5 +81,14 @@ const formatDate = (dateStr: string) => {
         <p class="text-xs text-muted-foreground mt-1">{{ $t('note.emptyStateSub') }}</p>
       </div>
     </div>
+
+    <ConfirmDialog
+      v-model:open="showDeleteConfirm"
+      :title="$t('common.delete')"
+      :description="$t('note.deleteConfirm')"
+      :confirm-text="$t('common.delete')"
+      variant="destructive"
+      @confirm="handleDelete"
+    />
   </div>
 </template>
