@@ -46,15 +46,15 @@ const formatDate = (dateStr: string) => {
         <div 
           v-for="todo in activeTodos" 
           :key="todo.id"
-          class="group p-3 rounded-xl border border-white/10 bg-white/5 dark:bg-white/5 backdrop-blur-md hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer animate-slide-in shadow-sm hover:shadow-md"
+          class="group p-3 rounded-xl border border-black/[0.05] dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer animate-slide-in shadow-sm hover:shadow-md"
           @click="emit('edit', todo)"
         >
           <div class="flex items-center gap-3">
             <button
-              class="flex-shrink-0 w-5 h-5 rounded border-2 border-primary hover:bg-primary/10 transition-colors"
+              class="flex-shrink-0 w-5 h-5 rounded border-2 border-muted-foreground/40 hover:bg-muted-foreground/10 transition-colors flex items-center justify-center"
               @click.stop="handleToggle(todo)"
             >
-              <Check v-if="todo.completed" class="w-4 h-4 text-primary" />
+              <Check v-if="todo.completed" class="w-4 h-4 text-muted-foreground" />
             </button>
             <div class="flex-1 min-w-0">
               <h3 class="font-medium text-sm truncate">{{ todo.title }}</h3>
@@ -83,15 +83,15 @@ const formatDate = (dateStr: string) => {
           <div 
             v-for="todo in completedTodos" 
             :key="todo.id"
-            class="group p-3 rounded-xl border border-white/5 bg-white/5 dark:bg-white/5 backdrop-blur-sm hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer opacity-60 hover:opacity-100"
+            class="group p-3 rounded-xl border border-black/[0.03] dark:border-white/5 bg-white/30 dark:bg-white/5 backdrop-blur-sm hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer opacity-60 hover:opacity-100"
             @click="emit('edit', todo)"
           >
             <div class="flex items-center gap-3">
               <button
-                class="flex-shrink-0 w-5 h-5 rounded border-2 bg-primary border-primary hover:bg-primary/80 transition-colors flex items-center justify-center"
+                class="flex-shrink-0 w-5 h-5 rounded border-2 bg-muted-foreground/40 border-muted-foreground/40 hover:bg-muted-foreground/50 transition-colors flex items-center justify-center"
                 @click.stop="handleToggle(todo)"
               >
-                <Check class="w-4 h-4 text-primary-foreground" />
+                <Check class="w-4 h-4 text-white dark:text-gray-900" />
               </button>
               <div class="flex-1 min-w-0">
                 <h3 class="font-medium text-sm truncate line-through">{{ todo.title }}</h3>

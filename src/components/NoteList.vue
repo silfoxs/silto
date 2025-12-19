@@ -40,7 +40,7 @@ const formatDate = (dateStr: string) => {
       <div 
         v-for="note in sortedNotes" 
         :key="note.id"
-        class="group p-4 rounded-xl border border-white/10 bg-white/5 dark:bg-white/5 backdrop-blur-md hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer animate-slide-in shadow-sm hover:shadow-md"
+        class="group p-4 rounded-xl border border-black/[0.05] dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer animate-slide-in shadow-sm hover:shadow-md"
         @click="emit('edit', note)"
       >
         <div class="flex items-start gap-3">
