@@ -48,6 +48,7 @@ pub fn run() {
             commands::delete_note,
             commands::get_settings,
             commands::save_settings,
+            commands::apply_vibrancy,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

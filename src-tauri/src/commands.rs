@@ -1,5 +1,5 @@
 use crate::models::{Note, Settings, Todo};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
 
 const TODOS_STORE_KEY: &str = "todos";
@@ -137,5 +137,30 @@ pub async fn save_settings(app: AppHandle, settings: Settings) -> Result<(), Str
     store.set(SETTINGS_STORE_KEY, settings_value);
     store.save().map_err(|e| e.to_string())?;
 
+    Ok(())
+}
+#[tauri::command]
+pub async fn apply_vibrancy(app: AppHandle, theme: String) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+        let window = app
+            .get_webview_window("main")
+            .ok_or("Main window not found")?;
+
+        let material = match theme.as_str() {
+            "light" => NSVisualEffectMaterial::Light,
+            "dark" => NSVisualEffectMaterial::Dark,
+            _ => NSVisualEffectMaterial::UnderWindowBackground,
+        };
+
+        apply_vibrancy(&window, material, None, Some(16.0))
+            .map_err(|e| format!("Failed to apply vibrancy: {}", e))?;
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = theme;
+        let _ = app;
+    }
     Ok(())
 }
