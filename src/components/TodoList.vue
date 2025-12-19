@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useTodos } from '@/composables/useTodos'
 import { Check, Clock, Trash2 } from 'lucide-vue-next'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { Todo } from '@/types'
 import { stripHtml } from '@/lib/utils'
 import { useI18n } from 'vue-i18n'
 
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 const { activeTodos, completedTodos, loadTodos, toggleTodo, deleteTodo } = useTodos()
 
 const emit = defineEmits<{
@@ -21,9 +22,18 @@ const handleToggle = async (todo: Todo) => {
   await toggleTodo(todo)
 }
 
-const handleDelete = async (id: string) => {
-  if (confirm(t('todo.deleteConfirm'))) {
-    await deleteTodo(id)
+const showDeleteConfirm = ref(false)
+const itemToDelete = ref<string | null>(null)
+
+const confirmDelete = (id: string) => {
+  itemToDelete.value = id
+  showDeleteConfirm.value = true
+}
+
+const handleDelete = async () => {
+  if (itemToDelete.value) {
+    await deleteTodo(itemToDelete.value)
+    itemToDelete.value = null
   }
 }
 
@@ -68,7 +78,7 @@ const formatDate = (dateStr: string) => {
             </div>
             <button
               class="opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-destructive hover:text-white dark:hover:bg-red-500 rounded-md"
-              @click.stop="handleDelete(todo.id)"
+              @click.stop="confirmDelete(todo.id)"
             >
               <Trash2 class="w-4 h-4" />
             </button>
@@ -101,7 +111,7 @@ const formatDate = (dateStr: string) => {
               </div>
               <button
                 class="opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-destructive hover:text-white dark:hover:bg-red-500 rounded-md"
-                @click.stop="handleDelete(todo.id)"
+                @click.stop="confirmDelete(todo.id)"
               >
                 <Trash2 class="w-4 h-4" />
               </button>
@@ -119,5 +129,14 @@ const formatDate = (dateStr: string) => {
         <p class="text-xs text-muted-foreground mt-1">{{ $t('todo.emptyStateSub') }}</p>
       </div>
     </div>
+
+    <ConfirmDialog
+      v-model:open="showDeleteConfirm"
+      :title="$t('common.delete')"
+      :description="$t('todo.deleteConfirm')"
+      :confirm-text="$t('common.delete')"
+      variant="destructive"
+      @confirm="handleDelete"
+    />
   </div>
 </template>
