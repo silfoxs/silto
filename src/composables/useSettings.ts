@@ -72,12 +72,13 @@ export function useSettings() {
             document.documentElement.classList.remove('dark')
         }
 
-        // Set window theme to fix macOS background issue
-        // This ensures the vibrancy follows the correct theme
+        // Set window theme and vibrancy to fix macOS background issue
         try {
             await tauriWindow.setTheme(effectiveTheme)
+            // Re-apply vibrancy with theme-specific material to avoid gray background
+            await invoke('apply_vibrancy', { theme: effectiveTheme })
         } catch (e) {
-            console.error('Failed to set window theme:', e)
+            console.error('Failed to set window theme or vibrancy:', e)
         }
     }
 
