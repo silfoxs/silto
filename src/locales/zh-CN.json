@@ -14,6 +14,7 @@
         "theme": "主题",
         "themeLight": "浅色",
         "themeDark": "深色",
+        "themeSystem": "跟随系统",
         "language": "语言",
         "leftClickAction": "托盘左键点击时显示",
         "todoList": "待办",

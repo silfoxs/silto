@@ -38,6 +38,7 @@ pub enum LeftClickAction {
 pub enum Theme {
     Light,
     Dark,
+    System,
 }
 
 impl Default for Settings {
