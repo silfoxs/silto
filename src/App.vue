@@ -76,7 +76,7 @@ const handleEditNote = (note: Note) => {
   <!-- Main Container: Transparent + Rounded + Border -->
   <Tabs
     v-model="activeView"
-    class="flex flex-col h-screen bg-white/80 dark:bg-black/40 backdrop-blur-xl text-foreground rounded-2xl border border-white/20 overflow-hidden relative"
+    class="flex flex-col h-screen bg-white dark:bg-black backdrop-blur-xl text-foreground rounded-2xl border border-white/20 overflow-hidden relative"
   >
     <!-- Gradient Blur Layers -->
     <div class="absolute top-0 left-0 right-0 h-20 z-10 pointer-events-none overflow-hidden select-none">
