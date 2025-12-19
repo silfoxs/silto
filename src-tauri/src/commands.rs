@@ -148,11 +148,20 @@ pub async fn apply_vibrancy(app: AppHandle, theme: String) -> Result<(), String>
             .get_webview_window("main")
             .ok_or("Main window not found")?;
 
-        let material = match theme.as_str() {
-            "light" => NSVisualEffectMaterial::Light,
-            "dark" => NSVisualEffectMaterial::Dark,
-            _ => NSVisualEffectMaterial::UnderWindowBackground,
-        };
+        // Set transparency based on theme
+        match theme.as_str() {
+            "light" => {
+                let _ = window.set_theme(Some(tauri::Theme::Light));
+            }
+            "dark" => {
+                let _ = window.set_theme(Some(tauri::Theme::Dark));
+            }
+            _ => {
+                let _ = window.set_theme(None);
+            }
+        }
+
+        let material = NSVisualEffectMaterial::UnderWindowBackground;
 
         apply_vibrancy(&window, material, None, Some(16.0))
             .map_err(|e| format!("Failed to apply vibrancy: {}", e))?;
