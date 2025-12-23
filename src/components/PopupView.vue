@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { currentMonitor, type Monitor } from '@tauri-apps/api/window'
-import { Plus, ExternalLink, Clock, CheckCircle, StickyNote, Trash2 } from 'lucide-vue-next'
+import { Plus, ExternalLink, Clock, CheckCircle, StickyNote, Trash2, Copy, Check, X } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useSettings } from '@/composables/useSettings'
@@ -34,8 +34,18 @@ const tooltipStyle = computed(() => {
   if (!hoveredItem.value) return {}
   
   const { mainRect } = hoveredItem.value
+  
+  // Calculate vertical position (prevent overflow)
+  let top = mainRect.top
+  const winHeight = window.innerHeight
+  const estimatedHeight = 300 // Estimate average height
+  
+  if (top + estimatedHeight > winHeight) {
+    top = Math.max(10, winHeight - estimatedHeight - 20)
+  }
+
   const style: Record<string, string> = {
-    top: `${mainRect.top}px`,
+    top: `${top}px`,
   }
   
   const GAP = 10 // Reduced from 30
@@ -164,7 +174,7 @@ const handleItemHover = (item: Todo | Note, type: 'todo' | 'note') => {
 const handleItemLeave = () => {
   hoverTimeout = setTimeout(() => {
     hoveredItem.value = null
-  }, 150) // 150ms buffer time for moving mouse to tooltip
+  }, 300) // Increased to 300ms for better usability
 }
 
 const handleTooltipEnter = () => {
@@ -176,6 +186,41 @@ const handleTooltipEnter = () => {
 
 const handleTooltipLeave = () => {
   handleItemLeave()
+}
+
+// Copy functionality
+const copied = ref(false)
+const copyError = ref(false)
+const copyTimeout = ref<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+const handleCopy = async () => {
+  if (!hoveredItem.value) return
+  
+  const content = hoveredItem.value.type === 'todo' 
+    ? ((hoveredItem.value.item as Todo).content || '') 
+    : (hoveredItem.value.item as Note).content
+    
+  if (!content) return
+
+  try {
+    const { writeText } = await import('@tauri-apps/plugin-clipboard-manager')
+    await writeText(content)
+    copied.value = true
+    
+    if (copyTimeout.value) clearTimeout(copyTimeout.value)
+    
+    copyTimeout.value = setTimeout(() => {
+      copied.value = false
+    }, 2000)
+  } catch (err) {
+    console.error('Failed to copy via plugin:', err)
+    alert('Copy Failed: ' + err) // Debugging
+    copyError.value = true
+    if (copyTimeout.value) clearTimeout(copyTimeout.value)
+    copyTimeout.value = setTimeout(() => {
+      copyError.value = false
+    }, 2000)
+  }
 }
 
 onMounted(() => {
@@ -417,10 +462,21 @@ const handleNoteClick = async (note: Note) => {
         @click.stop
       >
         <!-- Title Header -->
-        <div class="px-4 py-3 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/5">
-           <div class="font-semibold text-sm leading-snug text-foreground/90 truncate">
+        <div class="px-4 py-3 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/5 flex items-center justify-between">
+           <div class="font-semibold text-sm leading-snug text-foreground/90 truncate flex-1 min-w-0 mr-2">
              {{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : '便签详情' }}
            </div>
+           
+           <!-- Copy Button -->
+           <button 
+             class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all duration-200"
+             @click.stop="handleCopy"
+             :title="copied ? '已复制' : (copyError ? '复制失败' : '复制内容')"
+           >
+             <Check v-if="copied" class="w-3.5 h-3.5 text-green-500" />
+             <X v-else-if="copyError" class="w-3.5 h-3.5 text-red-500" />
+             <Copy v-else class="w-3.5 h-3.5" />
+           </button>
         </div>
 
         <div class="p-4 overflow-y-auto custom-scrollbar">
