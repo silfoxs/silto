@@ -321,7 +321,7 @@ const handleNoteClick = async (note: Note) => {
       <!-- 顶部标题栏内容 (无背景，仅内容) -->
       <div class="absolute top-0 left-0 right-0 z-30 py-2.5 px-3 flex items-center justify-between pointer-events-none">
         <div class="w-8 pointer-events-auto"></div> <!-- 占位符 -->
-        <h2 class="text-xs font-semibold tracking-wide opacity-90 text-foreground/80 pointer-events-auto mix-blend-difference text-white">
+        <h2 class="text-xs font-semibold tracking-wide opacity-90 text-foreground/90 pointer-events-auto">
           {{ displayMode === 'todo' ? '待办事项' : '便签' }}
         </h2>
         <Button 
