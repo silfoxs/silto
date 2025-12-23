@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { currentMonitor, type Monitor } from '@tauri-apps/api/window'
 import { Plus, ExternalLink, Clock, CheckCircle, StickyNote, Trash2 } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -14,27 +15,37 @@ const todos = ref<Todo[]>([])
 const notes = ref<Note[]>([])
 const { settings, loadSettings } = useSettings()
 
+const monitor = ref<Monitor | null>(null)
+const updateMonitor = async () => {
+  try {
+    monitor.value = await currentMonitor()
+  } catch (e) {
+    console.error('Failed to get monitor info:', e)
+  }
+}
+
+const mainContentRef = ref<HTMLElement | null>(null)
+
 // Tooltip state
-const hoveredItem = ref<{ item: Todo | Note, type: 'todo' | 'note', rect: DOMRect } | null>(null)
+const hoveredItem = ref<{ item: Todo | Note, type: 'todo' | 'note', mainRect: DOMRect } | null>(null)
 const tooltipSide = ref<'left' | 'right'>('right')
 
 const tooltipStyle = computed(() => {
   if (!hoveredItem.value) return {}
   
-  const { rect } = hoveredItem.value
+  const { mainRect } = hoveredItem.value
   const style: Record<string, string> = {
-    top: `${rect.top}px`,
-    transform: 'translateY(-20%)'
+    top: `${mainRect.top}px`,
   }
   
+  const GAP = 10 // Reduced from 30
+  
   if (tooltipSide.value === 'right') {
-    style.left = `${rect.right + 12}px`
+    style.left = `${mainRect.right + GAP}px`
     style.right = 'auto'
   } else {
     style.left = 'auto'
-    // Calculate right distance relative to window width
-    // We assume window.innerWidth is available (client-side)
-    style.right = `${window.innerWidth - rect.left + 12}px`
+    style.right = `${window.innerWidth - mainRect.left + GAP}px`
   }
   
   return style
@@ -105,30 +116,78 @@ const handleConfirmDelete = async () => {
 }
 
 // Hover handlers for tooltip
-const handleItemHover = (item: Todo | Note, type: 'todo' | 'note', event: MouseEvent) => {
-  const target = event.currentTarget as HTMLElement
-  const rect = target.getBoundingClientRect()
+let hoverTimeout: ReturnType<typeof setTimeout> | undefined
+
+const handleItemHover = (item: Todo | Note, type: 'todo' | 'note') => {
+  if (hoverTimeout) {
+    clearTimeout(hoverTimeout)
+    hoverTimeout = undefined
+  }
   
-  // Determine which side to show tooltip based on available space
-  const windowWidth = window.innerWidth
-  const centerX = windowWidth / 2
-  tooltipSide.value = rect.left < centerX ? 'right' : 'left'
+  const mainRect = mainContentRef.value?.getBoundingClientRect()
+  if (!mainRect) return
   
-  hoveredItem.value = { item, type, rect }
+  // Default to right
+  let side: 'left' | 'right' = 'right'
+
+  if (monitor.value) {
+    const scaleFactor = monitor.value.scaleFactor
+    const screenX = monitor.value.position.x / scaleFactor
+    const screenWidth = monitor.value.size.width / scaleFactor
+    const screenRight = screenX + screenWidth
+    
+    // Window global (logical) X. 
+    const winX = window.screenX
+    const tooltipWidth = 360 // Wider width
+    
+    // Check if showing on right would overflow screen
+    // Gap 10 + Width
+    const GAP = 10
+    const rightEdge = winX + mainRect.right + GAP + tooltipWidth
+    
+    if (rightEdge > screenRight) {
+      side = 'left'
+    } else {
+      side = 'right'
+    }
+  } else {
+    // Fallback if monitor info missing
+    const winWidth = window.innerWidth
+    const centerX = winWidth / 2
+    side = mainRect.left < centerX ? 'right' : 'left'
+  }
+  
+  tooltipSide.value = side
+  hoveredItem.value = { item, type, mainRect }
 }
 
 const handleItemLeave = () => {
-  hoveredItem.value = null
+  hoverTimeout = setTimeout(() => {
+    hoveredItem.value = null
+  }, 150) // 150ms buffer time for moving mouse to tooltip
+}
+
+const handleTooltipEnter = () => {
+  if (hoverTimeout) {
+    clearTimeout(hoverTimeout)
+    hoverTimeout = undefined
+  }
+}
+
+const handleTooltipLeave = () => {
+  handleItemLeave()
 }
 
 onMounted(() => {
   loadData()
   loadSettings()
+  updateMonitor()
   
   // 监听窗口获得焦点事件（显示时刷新数据和设置）
   appWindow.listen('tauri://focus', () => {
     loadSettings()
     loadData()
+    updateMonitor()
   })
   
   // 点击窗口外部时隐藏
@@ -198,12 +257,12 @@ const handleNoteClick = async (note: Note) => {
 </script>
 
 <template>
-  <div class="popup-container relative h-screen w-screen flex flex-col p-4 box-border">
+  <div class="popup-container relative h-screen w-screen flex flex-col p-4 box-border" @click="appWindow.hide()">
     <!-- 箭头指向状态栏图标 -->
     <div class="arrow-up"></div>
     
     <!-- 主内容区域 - 液态玻璃效果 -->
-    <div class="popup-content flex-1 bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl border border-white/30 dark:border-white/10 overflow-hidden relative shadow-2xl shadow-black/20 dark:shadow-white/5 flex flex-col w-[320px] mx-auto">
+    <div ref="mainContentRef" class="popup-content h-[420px] bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl border border-white/30 dark:border-white/10 overflow-hidden relative shadow-2xl shadow-black/20 dark:shadow-white/5 flex flex-col w-[340px] mx-auto" @click.stop style="transform: translateZ(0); will-change: backdrop-filter, transform; -webkit-backdrop-filter: blur(64px);">
       
       <!-- 顶部标题栏背景 (独立层，用于实现渐变高斯模糊) -->
       <div 
@@ -228,7 +287,7 @@ const handleNoteClick = async (note: Note) => {
       </div>
 
       <!-- 内容列表区域（可滚动，充满容器） -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar px-3 pt-11 pb-14 w-full" style="mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 16px), transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 16px), transparent 100%);">
+      <div class="flex-1 overflow-y-auto custom-scrollbar px-1.5 pt-11 pb-14 w-full" style="mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 16px), transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 16px), transparent 100%);">
         <!-- Todo 列表 -->
         <template v-if="displayMode === 'todo'">
           <div v-if="sortedTodos.length > 0" class="space-y-2">
@@ -237,7 +296,7 @@ const handleNoteClick = async (note: Note) => {
               :key="todo.id"
               class="p-2.5 rounded-xl bg-white/40 dark:bg-black/40 hover:bg-white/50 dark:hover:bg-black/50 border border-white/40 dark:border-white/20 cursor-pointer transition-all duration-200 shadow hover:shadow-md group ring-1 ring-white/10 dark:ring-white/5"
               @click="handleTodoClick(todo)"
-              @mouseenter="handleItemHover(todo, 'todo', $event)"
+              @mouseenter="handleItemHover(todo, 'todo')"
               @mouseleave="handleItemLeave"
             >
               <div class="flex items-center gap-3">
@@ -276,7 +335,7 @@ const handleNoteClick = async (note: Note) => {
               :key="note.id"
               class="p-2.5 rounded-xl bg-white/40 dark:bg-black/40 hover:bg-white/50 dark:hover:bg-black/50 border border-white/40 dark:border-white/20 cursor-pointer transition-all duration-200 shadow hover:shadow-md ring-1 ring-white/10 dark:ring-white/5 group"
               @click="handleNoteClick(note)"
-              @mouseenter="handleItemHover(note, 'note', $event)"
+              @mouseenter="handleItemHover(note, 'note')"
               @mouseleave="handleItemLeave"
             >
               <div class="flex gap-3">
@@ -340,24 +399,40 @@ const handleNoteClick = async (note: Note) => {
     <!-- 内容详情悬浮窗 (Now outside popup-content to avoid clipping) -->
     <div 
       v-if="hoveredItem" 
-      class="absolute z-50 pointer-events-none transition-all duration-200"
+      class="absolute z-50 pointer-events-none transition-all duration-300 ease-out"
+      :class="{ 
+        'translate-x-[-5px]': tooltipSide === 'left', 
+        'translate-x-[5px]': tooltipSide === 'right' 
+      }"
       :style="tooltipStyle"
+      @mouseenter="handleTooltipEnter"
+      @mouseleave="handleTooltipLeave"
     >
-      <div class="relative bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-white/40 dark:border-white/20 shadow-xl rounded-xl p-3 max-w-[200px] text-xs">
-        <!-- 箭头 -->
-        <div 
-          class="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-white/80 dark:bg-black/80 border-l border-b border-white/40 dark:border-white/20 rotate-45"
-          :class="tooltipSide === 'right' ? '-left-1' : '-right-1 border-l-0 border-b-0 border-r border-t'"
-        ></div>
-        
-        <div class="relative z-10">
-          <div class="font-medium mb-1 opacity-90 truncate">{{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : '' }}</div>
-          <div class="opacity-70 leading-relaxed whitespace-pre-wrap break-words">
+      <div 
+        class="relative flex flex-col bg-white/70 dark:bg-black/70 backdrop-blur-2xl backdrop-saturate-150 border border-white/40 dark:border-white/10 shadow-2xl shadow-black/10 dark:shadow-black/40 rounded-2xl w-[360px] max-h-[400px] overflow-hidden transform-gpu pointer-events-auto"
+        style="transform: translateZ(0); will-change: backdrop-filter; -webkit-backdrop-filter: blur(40px);"
+      >
+        <!-- Title Header -->
+        <div class="px-4 py-3 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/5">
+           <div class="font-semibold text-sm leading-snug text-foreground/90 truncate">
+             {{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : '便签详情' }}
+           </div>
+        </div>
+
+        <div class="p-4 overflow-y-auto custom-scrollbar">
+          <div class="text-[13px] leading-6 text-foreground/80 whitespace-pre-wrap break-words font-normal">
             {{ hoveredItem.type === 'todo' ? ((hoveredItem.item as Todo).content || '无详情') : (hoveredItem.item as Note).content }}
           </div>
-          <div class="mt-2 pt-2 border-t border-white/20 dark:border-white/10 opacity-50 flex items-center text-[10px]">
-            <Clock class="w-3 h-3 mr-1" />
-            {{ new Date(hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).created_at : (hoveredItem.item as Note).updated_at).toLocaleString() }}
+          
+          <div class="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between group/meta">
+             <div class="flex items-center text-[11px] text-foreground/40 font-medium">
+                <Clock class="w-3.5 h-3.5 mr-1.5 opacity-70" />
+                {{ new Date(hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).created_at : (hoveredItem.item as Note).updated_at).toLocaleString() }}
+             </div>
+             <div v-if="hoveredItem.type === 'todo' && (hoveredItem.item as Todo).remind_time" class="flex items-center text-[11px] text-primary/80 font-medium bg-primary/5 px-2 py-0.5 rounded-full">
+                <Clock class="w-3 h-3 mr-1" />
+                {{ new Date((hoveredItem.item as Todo).remind_time!).toLocaleTimeString() }}
+             </div>
           </div>
         </div>
       </div>
@@ -368,6 +443,7 @@ const handleNoteClick = async (note: Note) => {
 <style scoped>
 /* 箭头样式 - 指向上方状态栏图标 */
 .arrow-up {
+  pointer-events: auto;
   position: absolute;
   top: 9px; /* 调整位置，使其正好位于 padding 区域并连接主体 */
   left: 50%;
@@ -377,8 +453,10 @@ const handleNoteClick = async (note: Note) => {
   border-top: 1px solid rgba(255, 255, 255, 0.3);
   border-left: 1px solid rgba(255, 255, 255, 0.3);
   border-top-left-radius: 4px; /* 圆角效果 */
-  transform: translateX(-50%) rotate(45deg);
+  transform: translateX(-50%) rotate(45deg) translateZ(0); /* 强制 GPU 加速 */
+  will-change: transform, backdrop-filter; /* 提示浏览器优化 */
   backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px); /* Safari 支持 */
   z-index: 50; /* 确保在最上层 */
   box-shadow: -2px -2px 8px rgba(0, 0, 0, 0.05);
 }
