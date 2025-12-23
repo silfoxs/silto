@@ -1,0 +1,427 @@
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { Plus, ExternalLink, Clock, CheckCircle, StickyNote, Trash2 } from 'lucide-vue-next'
+import Button from '@/components/ui/Button.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import { useSettings } from '@/composables/useSettings'
+import type { Todo, Note } from '@/types'
+
+const appWindow = getCurrentWebviewWindow()
+
+const todos = ref<Todo[]>([])
+const notes = ref<Note[]>([])
+const { settings, loadSettings } = useSettings()
+
+// Tooltip state
+const hoveredItem = ref<{ item: Todo | Note, type: 'todo' | 'note', rect: DOMRect } | null>(null)
+const tooltipSide = ref<'left' | 'right'>('right')
+
+const tooltipStyle = computed(() => {
+  if (!hoveredItem.value) return {}
+  
+  const { rect } = hoveredItem.value
+  const style: Record<string, string> = {
+    top: `${rect.top}px`,
+    transform: 'translateY(-20%)'
+  }
+  
+  if (tooltipSide.value === 'right') {
+    style.left = `${rect.right + 12}px`
+    style.right = 'auto'
+  } else {
+    style.left = 'auto'
+    // Calculate right distance relative to window width
+    // We assume window.innerWidth is available (client-side)
+    style.right = `${window.innerWidth - rect.left + 12}px`
+  }
+  
+  return style
+})
+
+// 根据设置显示的内容类型
+const displayMode = computed(() => {
+  return settings.value.left_click_action === 'note' ? 'note' : 'todo'
+})
+
+// 获取所有未完成的 Todo，按时间排序（有提醒时间的优先，然后按创建时间由近及远）
+const sortedTodos = computed(() => {
+  return todos.value
+    .filter(t => !t.completed)
+    .sort((a, b) => {
+      // 如果都有提醒时间，按提醒时间由近及远排序
+      if (a.remind_time && b.remind_time) {
+        return new Date(a.remind_time).getTime() - new Date(b.remind_time).getTime()
+      }
+      // 有提醒时间的排在前面
+      if (a.remind_time) return -1
+      if (b.remind_time) return 1
+      // 都没有提醒时间，按创建时间由近及远排序
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    })
+})
+
+// 获取所有便签，按更新时间由近及远排序
+const sortedNotes = computed(() => {
+  return notes.value
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+})
+
+// 加载数据
+const loadData = async () => {
+  try {
+    todos.value = await invoke<Todo[]>('get_todos')
+    notes.value = await invoke<Note[]>('get_notes')
+  } catch (error) {
+    console.error('Failed to load data:', error)
+  }
+}
+
+// 删除确认状态
+const confirmOpen = ref(false)
+const itemToDelete = ref<{ id: number, type: 'todo' | 'note' } | null>(null)
+
+const confirmDelete = (id: number, type: 'todo' | 'note') => {
+  itemToDelete.value = { id, type }
+  confirmOpen.value = true
+}
+
+const handleConfirmDelete = async () => {
+  if (!itemToDelete.value) return
+  
+  try {
+    if (itemToDelete.value.type === 'todo') {
+      await invoke('delete_todo', { id: itemToDelete.value.id })
+    } else {
+      await invoke('delete_note', { id: itemToDelete.value.id })
+    }
+    await loadData()
+    appWindow.emit('refresh-data')
+    itemToDelete.value = null
+  } catch (error) {
+    console.error('Failed to delete item:', error)
+  }
+}
+
+// Hover handlers for tooltip
+const handleItemHover = (item: Todo | Note, type: 'todo' | 'note', event: MouseEvent) => {
+  const target = event.currentTarget as HTMLElement
+  const rect = target.getBoundingClientRect()
+  
+  // Determine which side to show tooltip based on available space
+  const windowWidth = window.innerWidth
+  const centerX = windowWidth / 2
+  tooltipSide.value = rect.left < centerX ? 'right' : 'left'
+  
+  hoveredItem.value = { item, type, rect }
+}
+
+const handleItemLeave = () => {
+  hoveredItem.value = null
+}
+
+onMounted(() => {
+  loadData()
+  loadSettings()
+  
+  // 监听窗口获得焦点事件（显示时刷新数据和设置）
+  appWindow.listen('tauri://focus', () => {
+    loadSettings()
+    loadData()
+  })
+  
+  // 点击窗口外部时隐藏
+  appWindow.listen('tauri://blur', () => {
+    appWindow.hide()
+  })
+})
+
+// 打开主窗口
+const openMainWindow = async () => {
+  const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+  const mainWindow = await WebviewWindow.getByLabel('main')
+  if (mainWindow) {
+    await mainWindow.show()
+    await mainWindow.setFocus()
+  }
+  appWindow.hide()
+}
+
+// 打开主窗口并添加 Todo
+const addTodo = async () => {
+  const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+  const mainWindow = await WebviewWindow.getByLabel('main')
+  if (mainWindow) {
+    await mainWindow.emit('tray-add-todo', {})
+    await mainWindow.show()
+    await mainWindow.setFocus()
+  }
+  appWindow.hide()
+}
+
+// 打开主窗口并添加便签
+const addNote = async () => {
+  const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+  const mainWindow = await WebviewWindow.getByLabel('main')
+  if (mainWindow) {
+    await mainWindow.emit('tray-add-note', {})
+    await mainWindow.show()
+    await mainWindow.setFocus()
+  }
+  appWindow.hide()
+}
+
+// 点击 Todo 项
+const handleTodoClick = async (todo: Todo) => {
+  const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+  const mainWindow = await WebviewWindow.getByLabel('main')
+  if (mainWindow) {
+    await mainWindow.emit('edit-todo', todo)
+    await mainWindow.show()
+    await mainWindow.setFocus()
+  }
+  appWindow.hide()
+}
+
+// 点击便签项
+const handleNoteClick = async (note: Note) => {
+  const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+  const mainWindow = await WebviewWindow.getByLabel('main')
+  if (mainWindow) {
+    await mainWindow.emit('edit-note', note)
+    await mainWindow.show()
+    await mainWindow.setFocus()
+  }
+  appWindow.hide()
+}
+</script>
+
+<template>
+  <div class="popup-container relative h-screen w-screen flex flex-col p-4 box-border">
+    <!-- 箭头指向状态栏图标 -->
+    <div class="arrow-up"></div>
+    
+    <!-- 主内容区域 - 液态玻璃效果 -->
+    <div class="popup-content flex-1 bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl border border-white/30 dark:border-white/10 overflow-hidden relative shadow-2xl shadow-black/20 dark:shadow-white/5 flex flex-col w-[320px] mx-auto">
+      
+      <!-- 顶部标题栏背景 (独立层，用于实现渐变高斯模糊) -->
+      <div 
+        class="absolute top-0 left-0 right-0 h-16 z-20 pointer-events-none"
+        style="backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); mask-image: linear-gradient(to bottom, black 0%, black 40%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, black 40%, transparent 100%);"
+      ></div>
+
+      <!-- 顶部标题栏内容 (无背景，仅内容) -->
+      <div class="absolute top-0 left-0 right-0 z-30 py-2.5 px-3 flex items-center justify-between pointer-events-none">
+        <div class="w-8 pointer-events-auto"></div> <!-- 占位符 -->
+        <h2 class="text-xs font-semibold tracking-wide opacity-90 text-foreground/80 pointer-events-auto mix-blend-difference text-white">
+          {{ displayMode === 'todo' ? '待办事项' : '便签' }}
+        </h2>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          class="h-6 w-6 hover:bg-white/20 dark:hover:bg-black/20 rounded-full pointer-events-auto"
+          @click="openMainWindow"
+        >
+          <ExternalLink class="w-3.5 h-3.5 opacity-70" />
+        </Button>
+      </div>
+
+      <!-- 内容列表区域（可滚动，充满容器） -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar px-3 pt-11 pb-14 w-full" style="mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 16px), transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 16px), transparent 100%);">
+        <!-- Todo 列表 -->
+        <template v-if="displayMode === 'todo'">
+          <div v-if="sortedTodos.length > 0" class="space-y-2">
+            <div 
+              v-for="todo in sortedTodos" 
+              :key="todo.id"
+              class="p-2.5 rounded-xl bg-white/40 dark:bg-black/40 hover:bg-white/50 dark:hover:bg-black/50 border border-white/40 dark:border-white/20 cursor-pointer transition-all duration-200 shadow hover:shadow-md group ring-1 ring-white/10 dark:ring-white/5"
+              @click="handleTodoClick(todo)"
+              @mouseenter="handleItemHover(todo, 'todo', $event)"
+              @mouseleave="handleItemLeave"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-4 h-4 rounded ml-0.5 border-2 border-primary/40 group-hover:border-primary/60 transition-colors flex-shrink-0"></div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium leading-none truncate">{{ todo.title }}</div>
+                  <div v-if="todo.content" class="text-xs text-foreground/50 line-clamp-2 mt-1.5 leading-relaxed">{{ todo.content }}</div>
+                  <div v-if="todo.remind_time" class="text-[10px] text-primary/70 mt-1.5 flex items-center">
+                    <Clock class="w-3 h-3 mr-1" />
+                    {{ new Date(todo.remind_time).toLocaleString() }}
+                  </div>
+                </div>
+                <!-- 删除按钮 -->
+                <button 
+                  class="p-1.5 rounded-md hover:bg-red-500/10 text-foreground/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer pointer-events-auto relative z-10"
+                  @click.stop="confirmDelete(Number(todo.id), 'todo')"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="h-full flex flex-col items-center justify-center text-foreground/40 space-y-2">
+            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center">
+              <CheckCircle class="w-6 h-6 opacity-50" />
+            </div>
+            <span class="text-xs">暂无待办事项</span>
+          </div>
+        </template>
+
+        <!-- 便签列表 -->
+        <template v-else>
+          <div v-if="sortedNotes.length > 0" class="space-y-2">
+            <div 
+              v-for="note in sortedNotes" 
+              :key="note.id"
+              class="p-2.5 rounded-xl bg-white/40 dark:bg-black/40 hover:bg-white/50 dark:hover:bg-black/50 border border-white/40 dark:border-white/20 cursor-pointer transition-all duration-200 shadow hover:shadow-md ring-1 ring-white/10 dark:ring-white/5 group"
+              @click="handleNoteClick(note)"
+              @mouseenter="handleItemHover(note, 'note', $event)"
+              @mouseleave="handleItemLeave"
+            >
+              <div class="flex gap-3">
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium leading-relaxed line-clamp-3 text-foreground/90">{{ note.content }}</div>
+                  <div class="text-[10px] text-foreground/30 mt-2 text-right">
+                    {{ new Date(note.created_at).toLocaleDateString() }}
+                  </div>
+                </div>
+                <!-- 删除按钮 -->
+                <button 
+                  class="p-1.5 rounded-md hover:bg-red-500/10 text-foreground/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200 h-fit self-start cursor-pointer pointer-events-auto relative z-10"
+                  @click.stop="confirmDelete(Number(note.id), 'note')"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="h-full flex flex-col items-center justify-center text-foreground/40 space-y-2">
+            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center">
+              <StickyNote class="w-6 h-6 opacity-50" />
+            </div>
+            <span class="text-xs">暂无便签</span>
+          </div>
+        </template>
+      </div>
+
+    
+      <!-- 内容详情悬浮窗 (Moved outside popup-content) -->
+      
+      <!-- 底部新建按钮 (悬浮 - 移除背景遮罩) -->
+      <div class="absolute bottom-2 left-3 right-3 z-30 pointer-events-none">
+        <div class="w-full pointer-events-auto">
+          <Button 
+            class="w-full h-10 bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 text-foreground/90 rounded-full shadow-lg backdrop-blur-xl border border-white/50 dark:border-white/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] font-medium text-xs ring-1 ring-white/20 dark:ring-white/10"
+            @click="displayMode === 'todo' ? addTodo() : addNote()"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <Plus class="w-4 h-4 opacity-90" />
+              <span class="tracking-wide opacity-100 font-semibold">{{ displayMode === 'todo' ? '新建待办' : '新建便签' }}</span>
+            </div>
+          </Button>
+        </div>
+      </div>
+      
+      <!-- 确认删除对话框 -->
+      <ConfirmDialog
+        :open="confirmOpen"
+        @update:open="confirmOpen = $event"
+        :title="itemToDelete?.type === 'todo' ? '删除待办' : '删除便签'"
+        :description="itemToDelete?.type === 'todo' ? '确定要删除这条待办事项吗？此操作无法撤销。' : '确定要删除这条便签吗？此操作无法撤销。'"
+        confirm-text="删除"
+        cancel-text="取消"
+        variant="destructive"
+        compact
+        @confirm="handleConfirmDelete"
+      />
+    </div>
+
+    <!-- 内容详情悬浮窗 (Now outside popup-content to avoid clipping) -->
+    <div 
+      v-if="hoveredItem" 
+      class="absolute z-50 pointer-events-none transition-all duration-200"
+      :style="tooltipStyle"
+    >
+      <div class="relative bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-white/40 dark:border-white/20 shadow-xl rounded-xl p-3 max-w-[200px] text-xs">
+        <!-- 箭头 -->
+        <div 
+          class="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-white/80 dark:bg-black/80 border-l border-b border-white/40 dark:border-white/20 rotate-45"
+          :class="tooltipSide === 'right' ? '-left-1' : '-right-1 border-l-0 border-b-0 border-r border-t'"
+        ></div>
+        
+        <div class="relative z-10">
+          <div class="font-medium mb-1 opacity-90 truncate">{{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : '' }}</div>
+          <div class="opacity-70 leading-relaxed whitespace-pre-wrap break-words">
+            {{ hoveredItem.type === 'todo' ? ((hoveredItem.item as Todo).content || '无详情') : (hoveredItem.item as Note).content }}
+          </div>
+          <div class="mt-2 pt-2 border-t border-white/20 dark:border-white/10 opacity-50 flex items-center text-[10px]">
+            <Clock class="w-3 h-3 mr-1" />
+            {{ new Date(hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).created_at : (hoveredItem.item as Note).updated_at).toLocaleString() }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* 箭头样式 - 指向上方状态栏图标 */
+.arrow-up {
+  position: absolute;
+  top: 9px; /* 调整位置，使其正好位于 padding 区域并连接主体 */
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.4) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-top-left-radius: 4px; /* 圆角效果 */
+  transform: translateX(-50%) rotate(45deg);
+  backdrop-filter: blur(24px);
+  z-index: 50; /* 确保在最上层 */
+  box-shadow: -2px -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+:global(.dark) .arrow-up {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: -2px -2px 8px rgba(255, 255, 255, 0.05);
+}
+
+/* 隐藏滚动条但保留功能 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 自定义滚动条 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+</style>
