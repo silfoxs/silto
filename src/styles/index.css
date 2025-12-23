@@ -55,8 +55,12 @@
   }
 
   /* Make body transparent so system blur shows through */
+  html,
   body {
-    @apply bg-transparent text-foreground antialiased;
+    background-color: transparent !important;
+    overflow: hidden !important;
+    /* Prevent scrollbars on the main window */
+    @apply text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

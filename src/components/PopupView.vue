@@ -262,7 +262,7 @@ const handleNoteClick = async (note: Note) => {
     <div class="arrow-up"></div>
     
     <!-- 主内容区域 - 液态玻璃效果 -->
-    <div ref="mainContentRef" class="popup-content h-[420px] bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl border border-white/30 dark:border-white/10 overflow-hidden relative shadow-2xl shadow-black/20 dark:shadow-white/5 flex flex-col w-[340px] mx-auto" @click.stop style="transform: translateZ(0); will-change: backdrop-filter, transform; -webkit-backdrop-filter: blur(64px);">
+    <div ref="mainContentRef" class="popup-content h-[420px] bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl border border-white/30 dark:border-white/10 overflow-hidden relative shadow-2xl shadow-black/20 dark:shadow-black/40 flex flex-col w-[340px] mx-auto" @click.stop style="will-change: backpack-filter; -webkit-backdrop-filter: blur(64px);">
       
       <!-- 顶部标题栏背景 (独立层，用于实现渐变高斯模糊) -->
       <div 
@@ -410,7 +410,7 @@ const handleNoteClick = async (note: Note) => {
     >
       <div 
         class="relative flex flex-col bg-white/70 dark:bg-black/70 backdrop-blur-2xl backdrop-saturate-150 border border-white/40 dark:border-white/10 shadow-2xl shadow-black/10 dark:shadow-black/40 rounded-2xl w-[360px] max-h-[400px] overflow-hidden transform-gpu pointer-events-auto"
-        style="transform: translateZ(0); will-change: backdrop-filter; -webkit-backdrop-filter: blur(40px);"
+        style="will-change: backdrop-filter; -webkit-backdrop-filter: blur(40px);"
       >
         <!-- Title Header -->
         <div class="px-4 py-3 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/5">
@@ -453,8 +453,8 @@ const handleNoteClick = async (note: Note) => {
   border-top: 1px solid rgba(255, 255, 255, 0.3);
   border-left: 1px solid rgba(255, 255, 255, 0.3);
   border-top-left-radius: 4px; /* 圆角效果 */
-  transform: translateX(-50%) rotate(45deg) translateZ(0); /* 强制 GPU 加速 */
-  will-change: transform, backdrop-filter; /* 提示浏览器优化 */
+  transform: translateX(-50%) rotate(45deg); /* Removed translateZ to fix black box issue */
+  will-change: backdrop-filter; /* 提示浏览器优化 */
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px); /* Safari 支持 */
   z-index: 50; /* 确保在最上层 */
@@ -465,7 +465,7 @@ const handleNoteClick = async (note: Note) => {
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.4) 100%);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   border-left: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: -2px -2px 8px rgba(255, 255, 255, 0.05);
+  box-shadow: -2px -2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* 隐藏滚动条但保留功能 */

@@ -45,7 +45,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             left_click_action: LeftClickAction::Todo,
-            theme: Theme::Light,
+            theme: Theme::System,
         }
     }
 }
