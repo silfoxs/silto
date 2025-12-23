@@ -260,12 +260,12 @@ const handleNoteClick = async (note: Note) => {
   <div class="popup-container relative h-screen w-screen flex flex-col p-4 box-border" @click="appWindow.hide()">
     <!-- 箭头指向状态栏图标 -->
     <div 
-      class="arrow-up pointer-events-auto absolute top-[9px] left-1/2 w-4 h-4 -translate-x-1/2 rotate-45 z-50 rounded-tl-[4px] backdrop-blur-[24px] bg-gradient-to-br from-white/60 to-white/40 dark:from-black/60 dark:to-black/40 border-t border-l border-white/30 dark:border-white/10 shadow-[-2px_-2px_8px_rgba(0,0,0,0.05)] dark:shadow-[-2px_-2px_8px_rgba(0,0,0,0.2)]"
+      class="arrow-up pointer-events-auto absolute top-[9px] left-1/2 w-4 h-4 -translate-x-1/2 rotate-45 z-50 rounded-tl-[4px] backdrop-blur-[24px] bg-gradient-to-br from-white/60 to-white/40 dark:from-black/60 dark:to-black/40"
       style="will-change: backdrop-filter; -webkit-backdrop-filter: blur(24px);"
     ></div>
     
     <!-- 主内容区域 - 液态玻璃效果 -->
-    <div ref="mainContentRef" class="popup-content h-[420px] bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl border border-white/30 dark:border-white/10 overflow-hidden relative shadow-2xl shadow-black/20 dark:shadow-black/40 flex flex-col w-[340px] mx-auto" @click.stop style="will-change: backpack-filter; -webkit-backdrop-filter: blur(64px);">
+    <div ref="mainContentRef" class="popup-content h-[420px] bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl overflow-hidden relative flex flex-col w-[340px] mx-auto" @click.stop style="will-change: backpack-filter; -webkit-backdrop-filter: blur(64px);">
       
       <!-- 顶部标题栏背景 (独立层，用于实现渐变高斯模糊) -->
       <div 
@@ -412,7 +412,7 @@ const handleNoteClick = async (note: Note) => {
       @mouseleave="handleTooltipLeave"
     >
       <div 
-        class="relative flex flex-col bg-white/70 dark:bg-black/70 backdrop-blur-2xl backdrop-saturate-150 border border-white/40 dark:border-white/10 shadow-2xl shadow-black/10 dark:shadow-black/40 rounded-2xl w-[360px] max-h-[400px] overflow-hidden transform-gpu pointer-events-auto"
+        class="relative flex flex-col bg-white/70 dark:bg-black/70 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl w-[360px] max-h-[400px] overflow-hidden transform-gpu pointer-events-auto"
         style="will-change: backdrop-filter; -webkit-backdrop-filter: blur(40px);"
       >
         <!-- Title Header -->
