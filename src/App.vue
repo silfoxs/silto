@@ -49,6 +49,19 @@ onMounted(async () => {
   await listen('tray-settings', () => {
     showSettings.value = true
   })
+
+  // 监听来自弹窗的编辑事件
+  await listen('edit-todo', (event: any) => {
+    editingTodo.value = event.payload
+    showTodoEditor.value = true
+    activeView.value = 'todo'
+  })
+
+  await listen('edit-note', (event: any) => {
+    editingNote.value = event.payload
+    showNoteEditor.value = true
+    activeView.value = 'note'
+  })
 })
 
 const handleAddNew = () => {

@@ -19,17 +19,21 @@ pub fn run() {
             // 创建系统托盘
             tray::create_tray(app.handle())?;
 
-            // Apply vibrancy (MacOS only)
+            // Apply vibrancy (MacOS only) - 仅对主窗口应用，悬浮窗使用 CSS 模糊以支持异形（箭头）
             if let Some(window) = app.get_webview_window("main") {
-                use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
-                apply_vibrancy(
-                    &window,
-                    NSVisualEffectMaterial::UnderWindowBackground,
-                    None,
-                    Some(16.0),
-                )
-                .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+                #[cfg(target_os = "macos")]
+                {
+                    use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+                    let _ = apply_vibrancy(
+                        &window,
+                        NSVisualEffectMaterial::UnderWindowBackground,
+                        None,
+                        Some(16.0),
+                    );
+                }
             }
+
+            // Apply vibrancy to popup window
 
             // 启动提醒检查任务
             let app_handle = app.handle().clone();

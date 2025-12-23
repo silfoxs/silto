@@ -23,6 +23,21 @@
         "center": true,
         "visible": false,
         "skipTaskbar": true
+      },
+      {
+        "label": "popup",
+        "title": "Silto Quick View",
+        "width": 800,
+        "height": 450,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "center": false,
+        "visible": false,
+        "skipTaskbar": true,
+        "alwaysOnTop": true,
+        "focus": true,
+        "url": "popup.html"
       }
     ],
     "security": {
