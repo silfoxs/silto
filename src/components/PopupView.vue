@@ -259,7 +259,10 @@ const handleNoteClick = async (note: Note) => {
 <template>
   <div class="popup-container relative h-screen w-screen flex flex-col p-4 box-border" @click="appWindow.hide()">
     <!-- 箭头指向状态栏图标 -->
-    <div class="arrow-up"></div>
+    <div 
+      class="arrow-up pointer-events-auto absolute top-[9px] left-1/2 w-4 h-4 -translate-x-1/2 rotate-45 z-50 rounded-tl-[4px] backdrop-blur-[24px] bg-gradient-to-br from-white/60 to-white/40 dark:from-black/60 dark:to-black/40 border-t border-l border-white/30 dark:border-white/10 shadow-[-2px_-2px_8px_rgba(0,0,0,0.05)] dark:shadow-[-2px_-2px_8px_rgba(0,0,0,0.2)]"
+      style="will-change: backdrop-filter; -webkit-backdrop-filter: blur(24px);"
+    ></div>
     
     <!-- 主内容区域 - 液态玻璃效果 -->
     <div ref="mainContentRef" class="popup-content h-[420px] bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl border border-white/30 dark:border-white/10 overflow-hidden relative shadow-2xl shadow-black/20 dark:shadow-black/40 flex flex-col w-[340px] mx-auto" @click.stop style="will-change: backpack-filter; -webkit-backdrop-filter: blur(64px);">
@@ -441,32 +444,6 @@ const handleNoteClick = async (note: Note) => {
 </template>
 
 <style scoped>
-/* 箭头样式 - 指向上方状态栏图标 */
-.arrow-up {
-  pointer-events: auto;
-  position: absolute;
-  top: 9px; /* 调整位置，使其正好位于 padding 区域并连接主体 */
-  left: 50%;
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.4) 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
-  border-top-left-radius: 4px; /* 圆角效果 */
-  transform: translateX(-50%) rotate(45deg); /* Removed translateZ to fix black box issue */
-  will-change: backdrop-filter; /* 提示浏览器优化 */
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px); /* Safari 支持 */
-  z-index: 50; /* 确保在最上层 */
-  box-shadow: -2px -2px 8px rgba(0, 0, 0, 0.05);
-}
-
-:global(.dark) .arrow-up {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.4) 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: -2px -2px 8px rgba(0, 0, 0, 0.2);
-}
 
 /* 隐藏滚动条但保留功能 */
 .no-scrollbar::-webkit-scrollbar {
