@@ -4,7 +4,7 @@
 
 use tauri::{
     image::Image,
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, PhysicalPosition,
 };
@@ -20,10 +20,10 @@ use objc::{class, msg_send, sel, sel_impl};
 pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
     // 创建托盘菜单
     let open_main = MenuItem::with_id(app, "open_main", "打开主窗口", true, None::<&str>)?;
-    let separator1 = MenuItem::with_id(app, "separator1", "---", false, None::<&str>)?;
+    let separator1 = PredefinedMenuItem::separator(app)?;
     let add_todo = MenuItem::with_id(app, "add_todo", "添加 Todo", true, None::<&str>)?;
     let add_note = MenuItem::with_id(app, "add_note", "添加便签", true, None::<&str>)?;
-    let separator2 = MenuItem::with_id(app, "separator2", "---", false, None::<&str>)?;
+    let separator2 = PredefinedMenuItem::separator(app)?;
     let settings = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
 
