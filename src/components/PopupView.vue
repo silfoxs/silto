@@ -414,6 +414,7 @@ const handleNoteClick = async (note: Note) => {
       <div 
         class="relative flex flex-col bg-white/70 dark:bg-black/70 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl w-[360px] max-h-[400px] overflow-hidden transform-gpu pointer-events-auto"
         style="will-change: backdrop-filter; -webkit-backdrop-filter: blur(40px);"
+        @click.stop
       >
         <!-- Title Header -->
         <div class="px-4 py-3 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/5">
