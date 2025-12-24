@@ -8,6 +8,7 @@ import { Plus, ExternalLink, Clock, CheckCircle, StickyNote, Trash2, Copy, Check
 import Button from '@/components/ui/Button.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useSettings } from '@/composables/useSettings'
+import { stripHtml } from '@/lib/utils'
 import type { Todo, Note } from '@/types'
 
 const appWindow = getCurrentWebviewWindow()
@@ -409,7 +410,8 @@ const toggleComplete = async (todo: Todo) => {
             >
               <div class="flex gap-3">
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium leading-relaxed line-clamp-3 text-foreground/90">{{ note.content }}</div>
+                  <div class="text-sm font-medium leading-none truncate">{{ note.title || '无标题' }}</div>
+                  <div class="text-xs text-foreground/50 line-clamp-2 mt-1.5 leading-relaxed">{{ stripHtml(note.content) }}</div>
                   <div class="text-[10px] text-foreground/30 mt-2 text-right">
                     {{ new Date(note.created_at).toLocaleDateString() }}
                   </div>
