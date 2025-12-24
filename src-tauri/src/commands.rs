@@ -1,5 +1,5 @@
 use crate::models::{Note, Settings, Todo};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_store::StoreExt;
 
 const TODOS_STORE_KEY: &str = "todos";
@@ -136,6 +136,10 @@ pub async fn save_settings(app: AppHandle, settings: Settings) -> Result<(), Str
 
     store.set(SETTINGS_STORE_KEY, settings_value);
     store.save().map_err(|e| e.to_string())?;
+
+    // Emit event to notify frontend of changes
+    app.emit("settings-changed", &settings)
+        .map_err(|e| e.to_string())?;
 
     Ok(())
 }

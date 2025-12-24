@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { listen } from '@tauri-apps/api/event'
 import { Plus, Settings as SettingsIcon } from 'lucide-vue-next'
 import TodoList from '@/components/TodoList.vue'
@@ -13,9 +13,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSettings } from '@/composables/useSettings'
 import type { Todo, Note } from '@/types'
 import { useI18n } from 'vue-i18n'
+import { useTodos } from '@/composables/useTodos'
+import { useNotes } from '@/composables/useNotes'
 
 const { t } = useI18n()
 const { settings } = useSettings()
+const { loadTodos } = useTodos()
+const { loadNotes } = useNotes()
 
 const activeView = ref<'todo' | 'note'>('todo')
 const showTodoEditor = ref(false)
@@ -31,7 +35,12 @@ const viewTitle = computed(() => {
 // 监听托盘事件
 onMounted(async () => {
   // 根据设置初始化视图
-  activeView.value = settings.value.left_click_action
+  // activeView.value = settings.value.left_click_action // 移除此行，改用 watch
+
+  // 监听 settings 变化，自动更新视图
+  watch(() => settings.value.left_click_action, (newAction: 'todo' | 'note') => {
+    activeView.value = newAction
+  }, { immediate: true })
 
   // 监听托盘菜单事件
   await listen('tray-add-todo', () => {
@@ -61,6 +70,12 @@ onMounted(async () => {
     editingNote.value = event.payload
     showNoteEditor.value = true
     activeView.value = 'note'
+  })
+
+  // 监听刷新数据事件
+  await listen('refresh-data', async () => {
+    await loadTodos()
+    await loadNotes()
   })
 })
 
