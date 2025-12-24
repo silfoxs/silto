@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { currentMonitor, type Monitor } from '@tauri-apps/api/window'
+import { emit } from '@tauri-apps/api/event'
 import { Plus, ExternalLink, Clock, CheckCircle, StickyNote, Trash2, Copy, Check, X } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -118,7 +119,7 @@ const handleConfirmDelete = async () => {
       await invoke('delete_note', { id: itemToDelete.value.id })
     }
     await loadData()
-    appWindow.emit('refresh-data')
+    await emit('refresh-data')
     itemToDelete.value = null
   } catch (error) {
     console.error('Failed to delete item:', error)
@@ -299,6 +300,21 @@ const handleNoteClick = async (note: Note) => {
   }
   appWindow.hide()
 }
+
+// 切换 Todo 完成状态
+const toggleComplete = async (todo: Todo) => {
+  try {
+    const updatedTodo = { ...todo, completed: !todo.completed }
+    await invoke('save_todo', { todo: updatedTodo })
+    await loadData()
+    await emit('refresh-data')
+    
+    // 如果是完成操作，显示一个小提示或者只是简单的让它消失（通过 filter）
+    // 目前列表会自动过滤掉已完成的
+  } catch (error) {
+    console.error('Failed to toggle todo status:', error)
+  }
+}
 </script>
 
 <template>
@@ -348,7 +364,12 @@ const handleNoteClick = async (note: Note) => {
               @mouseleave="handleItemLeave"
             >
               <div class="flex items-center gap-3">
-                <div class="w-4 h-4 rounded ml-0.5 border-2 border-primary/40 group-hover:border-primary/60 transition-colors flex-shrink-0"></div>
+                <div 
+                  class="w-4 h-4 rounded ml-0.5 border-2 border-primary/40 group-hover:border-primary/60 transition-colors flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-primary/10 pointer-events-auto z-10"
+                  @click.stop="toggleComplete(todo)"
+                >
+                  <Check v-if="todo.completed" class="w-2.5 h-2.5 text-primary" />
+                </div>
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium leading-none truncate">{{ todo.title }}</div>
                   <div v-if="todo.content" class="text-xs text-foreground/50 line-clamp-2 mt-1.5 leading-relaxed">{{ todo.content }}</div>

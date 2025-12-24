@@ -1,5 +1,6 @@
 import { ref, onMounted } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import type { Settings, Theme } from '../types'
 
 const settings = ref<Settings>({
@@ -84,6 +85,17 @@ export function useSettings() {
 
     onMounted(() => {
         loadSettings()
+
+        // Listen for settings changes from other windows
+        const unlisten = listen<Settings>('settings-changed', async (event) => {
+            console.log('Settings changed event received:', event.payload)
+            settings.value = event.payload
+            await applyTheme(event.payload.theme)
+        })
+
+        return () => {
+            unlisten.then(f => f())
+        }
     })
 
     return {
