@@ -487,7 +487,7 @@ const toggleComplete = async (todo: Todo) => {
         <!-- Title Header -->
         <div class="px-4 py-3 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/5 flex items-center justify-between">
            <div class="font-semibold text-sm leading-snug text-foreground/90 truncate flex-1 min-w-0 mr-2">
-             {{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : '便签详情' }}
+             {{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : ((hoveredItem.item as Note).title || '便签详情') }}
            </div>
            
            <!-- Copy Button -->
