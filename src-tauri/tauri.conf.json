@@ -81,7 +81,7 @@
       "active": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDAxRUMwNzc2RDgzNDkwOTAKUldTUWtEVFlkZ2ZzQWFWZXNDL0taVTh5bUhnb01aYVFWeklGZ3RlZ2puTTRGaS9vb0NMMi9pMFEK",
       "endpoints": [
-        "https://github.com/silfoxs/Release/blob/master/upgrade/silto/release/latest.json"
+        "https://github.com/silfoxs/silto/releases/latest/download/latest.json"
       ]
     }
   }
