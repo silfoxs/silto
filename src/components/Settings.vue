@@ -40,6 +40,9 @@ import { relaunch } from '@tauri-apps/plugin-process'
 
 const isChecking = ref(false)
 const isUpdating = ref(false)
+const downloadProgress = ref(0)
+const contentLength = ref(0)
+const downloaded = ref(0)
 
 const handleCheckUpdate = async () => {
   if (isChecking.value || isUpdating.value) return
@@ -55,7 +58,25 @@ const handleCheckUpdate = async () => {
       })
       if (confirmed) {
         isUpdating.value = true
-        await update.downloadAndInstall()
+        downloadProgress.value = 0
+        
+        await update.downloadAndInstall((event) => {
+          switch (event.event) {
+            case 'Started':
+              contentLength.value = event.data.contentLength || 0
+              break
+            case 'Progress':
+              downloaded.value += event.data.chunkLength
+              if (contentLength.value > 0) {
+                downloadProgress.value = Math.round((downloaded.value / contentLength.value) * 100)
+              }
+              break
+            case 'Finished':
+              downloadProgress.value = 100
+              break
+          }
+        })
+        
         await relaunch()
       }
     } else {
@@ -76,6 +97,9 @@ const handleCheckUpdate = async () => {
   } finally {
     isChecking.value = false
     isUpdating.value = false
+    downloadProgress.value = 0
+    contentLength.value = 0
+    downloaded.value = 0
   }
 }
 </script>
@@ -174,15 +198,31 @@ const handleCheckUpdate = async () => {
           <!-- 检查更新 -->
           <div>
             <label class="text-sm font-medium mb-3 block">{{ $t('settings.checkUpdate') }}</label>
-            <Button
-              variant="outline"
-              class="w-full"
-              @click="handleCheckUpdate"
-              :disabled="isChecking || isUpdating"
-            >
-              <RefreshCw :class="['w-4 h-4 mr-2', (isChecking || isUpdating) ? 'animate-spin' : '']" />
-              {{ isUpdating ? $t('settings.updating') : (isChecking ? $t('settings.checking') : $t('settings.checkUpdate')) }}
-            </Button>
+            <div class="relative w-full">
+              <Button
+                variant="outline"
+                class="w-full relative overflow-hidden"
+                @click="handleCheckUpdate"
+                :disabled="isChecking || isUpdating"
+              >
+                <!-- 进度条背景 -->
+                <div 
+                  v-if="isUpdating && downloadProgress > 0"
+                  class="absolute left-0 top-0 bottom-0 bg-primary/10 transition-all duration-300 ease-out"
+                  :style="{ width: `${downloadProgress}%` }"
+                ></div>
+                
+                <div class="relative flex items-center justify-center z-10 w-full">
+                  <RefreshCw :class="['w-4 h-4 mr-2', (isChecking || (isUpdating && downloadProgress === 0)) ? 'animate-spin' : '']" />
+                  <span v-if="isUpdating">
+                    {{ downloadProgress > 0 ? `${$t('settings.updating')} ${downloadProgress}%` : $t('settings.updating') }}
+                  </span>
+                  <span v-else>
+                    {{ isChecking ? $t('settings.checking') : $t('settings.checkUpdate') }}
+                  </span>
+                </div>
+              </Button>
+            </div>
           </div>
         </div>
 
