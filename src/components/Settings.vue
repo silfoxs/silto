@@ -36,9 +36,13 @@ const handleClose = () => {
   emit('update:open', false)
 }
 
+import { relaunch } from '@tauri-apps/plugin-process'
+
 const isChecking = ref(false)
+const isUpdating = ref(false)
+
 const handleCheckUpdate = async () => {
-  if (isChecking.value) return
+  if (isChecking.value || isUpdating.value) return
   isChecking.value = true
   try {
     const update = await check()
@@ -50,7 +54,9 @@ const handleCheckUpdate = async () => {
         cancelLabel: t('common.cancel'),
       })
       if (confirmed) {
+        isUpdating.value = true
         await update.downloadAndInstall()
+        await relaunch()
       }
     } else {
       await message(t('settings.noUpdate'), {
@@ -69,6 +75,7 @@ const handleCheckUpdate = async () => {
     })
   } finally {
     isChecking.value = false
+    isUpdating.value = false
   }
 }
 </script>
@@ -171,10 +178,10 @@ const handleCheckUpdate = async () => {
               variant="outline"
               class="w-full"
               @click="handleCheckUpdate"
-              :disabled="isChecking"
+              :disabled="isChecking || isUpdating"
             >
-              <RefreshCw :class="['w-4 h-4 mr-2', isChecking ? 'animate-spin' : '']" />
-              {{ isChecking ? $t('settings.checking') : $t('settings.checkUpdate') }}
+              <RefreshCw :class="['w-4 h-4 mr-2', (isChecking || isUpdating) ? 'animate-spin' : '']" />
+              {{ isUpdating ? $t('settings.updating') : (isChecking ? $t('settings.checking') : $t('settings.checkUpdate')) }}
             </Button>
           </div>
         </div>

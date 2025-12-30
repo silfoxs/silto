@@ -22,7 +22,8 @@
         "checkUpdate": "Check for Updates",
         "checking": "Checking...",
         "noUpdate": "You are on the latest version",
-        "updateAvailable": "Update available"
+        "updateAvailable": "Update available",
+        "updating": "Updating..."
     },
     "todo": {
         "titleLabel": "Title (Optional)",
