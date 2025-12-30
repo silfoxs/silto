@@ -6,6 +6,7 @@ import type { Settings, Theme } from '../types'
 const settings = ref<Settings>({
     left_click_action: 'todo',
     theme: 'system',
+    language: 'zh-CN',
 })
 
 export function useSettings() {
