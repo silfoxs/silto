@@ -50,5 +50,14 @@
     "locales": {
         "zh-CN": "Chinese",
         "en-US": "English"
+    },
+    "popup": {
+        "noteDetails": "Note Details",
+        "copied": "Copied",
+        "copyFailed": "Copy Failed",
+        "copyContent": "Copy Content",
+        "noDetails": "No Details",
+        "noTodos": "No todos yet",
+        "noNotes": "No notes yet"
     }
 }

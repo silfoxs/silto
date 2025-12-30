@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { currentMonitor, type Monitor } from '@tauri-apps/api/window'
@@ -12,6 +13,7 @@ import { stripHtml } from '@/lib/utils'
 import type { Todo, Note } from '@/types'
 
 const appWindow = getCurrentWebviewWindow()
+const { t, locale } = useI18n()
 
 const todos = ref<Todo[]>([])
 const notes = ref<Note[]>([])
@@ -235,6 +237,10 @@ onMounted(() => {
     loadSettings()
     loadData()
     updateMonitor()
+    const saved = localStorage.getItem('language')
+    if (saved) {
+      locale.value = saved
+    }
   })
   
   // 点击窗口外部时隐藏
@@ -339,7 +345,7 @@ const toggleComplete = async (todo: Todo) => {
       <div class="absolute top-0 left-0 right-0 z-30 py-2.5 px-3 flex items-center justify-between pointer-events-none">
         <div class="w-8 pointer-events-auto"></div> <!-- 占位符 -->
         <h2 class="text-xs font-semibold tracking-wide opacity-90 text-foreground/90 pointer-events-auto">
-          {{ displayMode === 'todo' ? '待办事项' : '便签' }}
+          {{ displayMode === 'todo' ? t('settings.todoList') : t('settings.noteList') }}
         </h2>
         <Button 
           variant="ghost" 
@@ -393,7 +399,7 @@ const toggleComplete = async (todo: Todo) => {
             <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center">
               <CheckCircle class="w-6 h-6 opacity-50" />
             </div>
-            <span class="text-xs">暂无待办事项</span>
+            <span class="text-xs">{{ t('popup.noTodos') }}</span>
           </div>
         </template>
 
@@ -430,7 +436,7 @@ const toggleComplete = async (todo: Todo) => {
             <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center">
               <StickyNote class="w-6 h-6 opacity-50" />
             </div>
-            <span class="text-xs">暂无便签</span>
+            <span class="text-xs">{{ t('popup.noNotes') }}</span>
           </div>
         </template>
       </div>
@@ -447,7 +453,7 @@ const toggleComplete = async (todo: Todo) => {
           >
             <div class="flex items-center justify-center gap-2">
               <Plus class="w-4 h-4 opacity-90" />
-              <span class="tracking-wide opacity-100 font-semibold">{{ displayMode === 'todo' ? '新建待办' : '新建便签' }}</span>
+              <span class="tracking-wide opacity-100 font-semibold">{{ displayMode === 'todo' ? t('todo.newTodo') : t('note.newNote') }}</span>
             </div>
           </Button>
         </div>
@@ -457,10 +463,10 @@ const toggleComplete = async (todo: Todo) => {
       <ConfirmDialog
         :open="confirmOpen"
         @update:open="confirmOpen = $event"
-        :title="itemToDelete?.type === 'todo' ? '删除待办' : '删除便签'"
-        :description="itemToDelete?.type === 'todo' ? '确定要删除这条待办事项吗？此操作无法撤销。' : '确定要删除这条便签吗？此操作无法撤销。'"
-        confirm-text="删除"
-        cancel-text="取消"
+        :title="itemToDelete?.type === 'todo' ? `${t('common.delete')} ${t('settings.todoList')}` : `${t('common.delete')} ${t('settings.noteList')}`"
+        :description="itemToDelete?.type === 'todo' ? t('todo.deleteConfirm') : t('note.deleteConfirm')"
+        :confirm-text="t('common.delete')"
+        :cancel-text="t('common.cancel')"
         variant="destructive"
         compact
         @confirm="handleConfirmDelete"
@@ -487,14 +493,14 @@ const toggleComplete = async (todo: Todo) => {
         <!-- Title Header -->
         <div class="px-4 py-3 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/5 flex items-center justify-between">
            <div class="font-semibold text-sm leading-snug text-foreground/90 truncate flex-1 min-w-0 mr-2">
-             {{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : ((hoveredItem.item as Note).title || '便签详情') }}
+             {{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : ((hoveredItem.item as Note).title || t('popup.noteDetails')) }}
            </div>
            
            <!-- Copy Button -->
            <button 
              class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all duration-200"
              @click.stop="handleCopy"
-             :title="copied ? '已复制' : (copyError ? '复制失败' : '复制内容')"
+             :title="copied ? t('popup.copied') : (copyError ? t('popup.copyFailed') : t('popup.copyContent'))"
            >
              <Check v-if="copied" class="w-3.5 h-3.5 text-green-500" />
              <X v-else-if="copyError" class="w-3.5 h-3.5 text-red-500" />
@@ -504,7 +510,7 @@ const toggleComplete = async (todo: Todo) => {
 
         <div class="p-4 overflow-y-auto custom-scrollbar">
           <div class="text-[13px] leading-6 text-foreground/80 whitespace-pre-wrap break-words font-normal">
-            {{ hoveredItem.type === 'todo' ? ((hoveredItem.item as Todo).content || '无详情') : (hoveredItem.item as Note).content }}
+            {{ hoveredItem.type === 'todo' ? ((hoveredItem.item as Todo).content || t('popup.noDetails')) : (hoveredItem.item as Note).content }}
           </div>
           
           <div class="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between group/meta">
