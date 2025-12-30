@@ -23,7 +23,8 @@
         "checking": "正在检查...",
         "noUpdate": "当前已是最新版本",
         "updateAvailable": "发现新版本",
-        "updating": "正在更新..."
+        "updating": "正在更新...",
+        "updateCompleted": "已更新至版本 {version}，应用将重启。"
     },
     "todo": {
         "titleLabel": "标题（可选）",

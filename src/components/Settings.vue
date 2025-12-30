@@ -50,7 +50,7 @@ const handleCheckUpdate = async () => {
   try {
     const update = await check()
     if (update) {
-      const confirmed = await ask(t('settings.updateAvailable'), {
+      const confirmed = await ask(`${t('settings.updateAvailable')} (${update.version})`, {
         title: t('settings.checkUpdate'),
         kind: 'info',
         okLabel: t('common.confirm'),
@@ -75,6 +75,12 @@ const handleCheckUpdate = async () => {
               downloadProgress.value = 100
               break
           }
+        })
+        
+        await message(t('settings.updateCompleted', { version: update.version }), {
+          title: t('settings.checkUpdate'),
+          kind: 'info',
+          okLabel: t('common.confirm'),
         })
         
         await relaunch()
