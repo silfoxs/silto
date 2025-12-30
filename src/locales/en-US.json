@@ -23,7 +23,8 @@
         "checking": "Checking...",
         "noUpdate": "You are on the latest version",
         "updateAvailable": "Update available",
-        "updating": "Updating..."
+        "updating": "Updating...",
+        "updateCompleted": "Update to version {version} completed. Application will restart."
     },
     "todo": {
         "titleLabel": "Title (Optional)",
