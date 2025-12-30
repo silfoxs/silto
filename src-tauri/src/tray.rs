@@ -8,6 +8,7 @@ use tauri::{
     tray::{TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, PhysicalPosition,
 };
+use tauri_plugin_store::StoreExt;
 
 // 抑制 cocoa crate 的弃用警告（功能正常，未来可迁移到 objc2）
 #[cfg(target_os = "macos")]
@@ -18,14 +19,36 @@ use cocoa::foundation::NSRect;
 use objc::{class, msg_send, sel, sel_impl};
 
 pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
+    // 获取当前语言设置
+    let store = app.store("store.json").map_err(|e| {
+        tauri::Error::Io(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            e.to_string(),
+        ))
+    })?;
+    let settings_value = store.get("settings");
+
+    let lang = if let Some(value) = settings_value {
+        value
+            .get("language")
+            .and_then(|v| v.as_str())
+            .unwrap_or("zh-CN")
+            .to_string()
+    } else {
+        "zh-CN".to_string()
+    };
+
+    let (open_main_text, add_todo_text, add_note_text, settings_text, quit_text) =
+        get_menu_translations(&lang);
+
     // 创建托盘菜单
-    let open_main = MenuItem::with_id(app, "open_main", "打开主窗口", true, None::<&str>)?;
+    let open_main = MenuItem::with_id(app, "open_main", open_main_text, true, None::<&str>)?;
     let separator1 = PredefinedMenuItem::separator(app)?;
-    let add_todo = MenuItem::with_id(app, "add_todo", "添加 Todo", true, None::<&str>)?;
-    let add_note = MenuItem::with_id(app, "add_note", "添加便签", true, None::<&str>)?;
+    let add_todo = MenuItem::with_id(app, "add_todo", add_todo_text, true, None::<&str>)?;
+    let add_note = MenuItem::with_id(app, "add_note", add_note_text, true, None::<&str>)?;
     let separator2 = PredefinedMenuItem::separator(app)?;
-    let settings = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+    let settings = MenuItem::with_id(app, "settings", settings_text, true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", quit_text, true, None::<&str>)?;
 
     let menu = Menu::with_items(
         app,
@@ -49,7 +72,7 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
     let icon = Image::new(icon_image.as_raw(), width, height);
 
     // 创建托盘图标
-    let tray = TrayIconBuilder::new()
+    let tray = TrayIconBuilder::with_id("main")
         .icon(icon)
         .icon_as_template(true)
         .menu(&menu)
@@ -98,6 +121,51 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
         .build(app)?;
 
     Ok(tray)
+}
+
+pub fn update_tray_lang(app: &AppHandle, lang: &str) -> Result<(), tauri::Error> {
+    if let Some(tray) = app.tray_by_id("main") {
+        let (open_main_text, add_todo_text, add_note_text, settings_text, quit_text) =
+            get_menu_translations(lang);
+
+        // 创建新菜单项
+        let open_main = MenuItem::with_id(app, "open_main", open_main_text, true, None::<&str>)?;
+        let separator1 = PredefinedMenuItem::separator(app)?;
+        let add_todo = MenuItem::with_id(app, "add_todo", add_todo_text, true, None::<&str>)?;
+        let add_note = MenuItem::with_id(app, "add_note", add_note_text, true, None::<&str>)?;
+        let separator2 = PredefinedMenuItem::separator(app)?;
+        let settings = MenuItem::with_id(app, "settings", settings_text, true, None::<&str>)?;
+        let quit = MenuItem::with_id(app, "quit", quit_text, true, None::<&str>)?;
+
+        let menu = Menu::with_items(
+            app,
+            &[
+                &open_main,
+                &separator1,
+                &add_todo,
+                &add_note,
+                &separator2,
+                &settings,
+                &quit,
+            ],
+        )?;
+
+        tray.set_menu(Some(menu))?;
+    }
+    Ok(())
+}
+
+fn get_menu_translations(lang: &str) -> (&str, &str, &str, &str, &str) {
+    match lang {
+        "en-US" => (
+            "Open Main Window",
+            "Add Todo",
+            "Add Note",
+            "Settings",
+            "Quit",
+        ),
+        _ => ("打开主窗口", "添加 Todo", "添加便签", "设置", "退出"),
+    }
 }
 
 fn show_popup_window(app: &AppHandle, click_pos: tauri::PhysicalPosition<f64>) {

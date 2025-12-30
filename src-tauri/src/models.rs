@@ -24,6 +24,7 @@ pub struct Note {
 pub struct Settings {
     pub left_click_action: LeftClickAction,
     pub theme: Theme,
+    pub language: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,6 +47,7 @@ impl Default for Settings {
         Self {
             left_click_action: LeftClickAction::Todo,
             theme: Theme::System,
+            language: "zh-CN".to_string(),
         }
     }
 }
