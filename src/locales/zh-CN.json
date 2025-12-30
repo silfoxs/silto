@@ -50,5 +50,14 @@
     "locales": {
         "zh-CN": "中文",
         "en-US": "English"
+    },
+    "popup": {
+        "noteDetails": "便签详情",
+        "copied": "已复制",
+        "copyFailed": "复制失败",
+        "copyContent": "复制内容",
+        "noDetails": "无详情",
+        "noTodos": "暂无待办事项",
+        "noNotes": "暂无便签"
     }
 }
