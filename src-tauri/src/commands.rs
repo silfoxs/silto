@@ -141,6 +141,9 @@ pub async fn save_settings(app: AppHandle, settings: Settings) -> Result<(), Str
     app.emit("settings-changed", &settings)
         .map_err(|e| e.to_string())?;
 
+    // Update tray menu language
+    crate::tray::update_tray_lang(&app, &settings.language).map_err(|e| e.to_string())?;
+
     Ok(())
 }
 #[tauri::command]

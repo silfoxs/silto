@@ -27,9 +27,14 @@ const handleLeftClickActionChange = async (action: 'todo' | 'note') => {
   })
 }
 
-const handleLanguageChange = (lang: string) => {
+const handleLanguageChange = async (lang: string) => {
   locale.value = lang
   localStorage.setItem('language', lang)
+  
+  await saveSettings({
+    ...settings.value,
+    language: lang,
+  })
 }
 
 const handleClose = () => {

@@ -21,4 +21,5 @@ export type Theme = 'light' | 'dark' | 'system'
 export interface Settings {
     left_click_action: LeftClickAction
     theme: Theme
+    language: string
 }
