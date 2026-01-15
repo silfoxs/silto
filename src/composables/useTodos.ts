@@ -51,9 +51,18 @@ export function useTodos() {
     }
 
     const activeTodos = computed(() =>
-        todos.value.filter(t => !t.completed).sort((a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
+        todos.value.filter(t => !t.completed).sort((a, b) => {
+            // Check if items have reminders
+            if (a.remind_time && b.remind_time) {
+                // Both have reminders: sort by reminder time ascending (nearer first)
+                return new Date(a.remind_time).getTime() - new Date(b.remind_time).getTime()
+            }
+            if (a.remind_time) return -1 // a has reminder, comes first
+            if (b.remind_time) return 1  // b has reminder, comes first
+            
+            // Neither has reminder: sort by creation time descending (newer first)
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        })
     )
 
     const completedTodos = computed(() =>

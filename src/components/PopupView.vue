@@ -13,6 +13,9 @@ import type { Todo, Note } from '@/types'
 
 const appWindow = getCurrentWebviewWindow()
 const { t, locale } = useI18n()
+import { useSettings } from '@/composables/useSettings'
+
+const { loadSettings } = useSettings()
 
 const todos = ref<Todo[]>([])
 const notes = ref<Note[]>([])
@@ -50,7 +53,7 @@ const tooltipStyle = computed(() => {
     top: `${top}px`,
   }
   
-  const GAP = 10 // Reduced from 30
+  const GAP = 6 // Reduced from 10
   
   if (tooltipSide.value === 'right') {
     style.left = `${mainRect.right + GAP}px`
@@ -85,15 +88,15 @@ const sortedTodos = computed(() => {
       // 有提醒时间的排在前面
       if (a.remind_time) return -1
       if (b.remind_time) return 1
-      // 都没有提醒时间，按创建时间由近及远排序
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      // 都没有提醒时间，按创建时间由近及远排序 (Newer first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
 })
 
 // 获取所有便签，按更新时间由近及远排序
 const sortedNotes = computed(() => {
   return notes.value
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 })
 
 // 加载数据
@@ -179,9 +182,9 @@ const handleItemHover = (item: Todo | Note, type: 'todo' | 'note') => {
 }
 
 const handleItemLeave = () => {
-  hoverTimeout = setTimeout(() => {
-    hoveredItem.value = null
-  }, 300) // Increased to 300ms for better usability
+    // hoverTimeout = setTimeout(() => {
+    //   hoveredItem.value = null
+    // }, 300) // Keep commented out or remove to disable auto-hide
 }
 
 const handleTooltipEnter = () => {
@@ -234,12 +237,14 @@ onMounted(() => {
   loadData()
   loadDisplayMode()
   updateMonitor()
+  loadSettings()
   
   // 监听窗口获得焦点事件（显示时刷新数据和设置）
   appWindow.listen('tauri://focus', () => {
     loadDisplayMode()
     loadData()
     updateMonitor()
+    loadSettings()
     const saved = localStorage.getItem('language')
     if (saved) {
       locale.value = saved
@@ -249,6 +254,7 @@ onMounted(() => {
   // 点击窗口外部时隐藏
   appWindow.listen('tauri://blur', () => {
     appWindow.hide()
+    hoveredItem.value = null // Reset tooltip
   })
 })
 
@@ -371,7 +377,6 @@ const toggleComplete = async (todo: Todo) => {
               class="p-2.5 rounded-xl bg-white/40 dark:bg-black/40 hover:bg-white/50 dark:hover:bg-black/50 border border-white/40 dark:border-white/20 cursor-pointer transition-all duration-200 shadow hover:shadow-md group ring-1 ring-white/10 dark:ring-white/5"
               @click="handleTodoClick(todo)"
               @mouseenter="handleItemHover(todo, 'todo')"
-              @mouseleave="handleItemLeave"
             >
               <div class="flex items-center gap-3">
                 <div 
@@ -415,7 +420,6 @@ const toggleComplete = async (todo: Todo) => {
               class="p-2.5 rounded-xl bg-white/40 dark:bg-black/40 hover:bg-white/50 dark:hover:bg-black/50 border border-white/40 dark:border-white/20 cursor-pointer transition-all duration-200 shadow hover:shadow-md ring-1 ring-white/10 dark:ring-white/5 group"
               @click="handleNoteClick(note)"
               @mouseenter="handleItemHover(note, 'note')"
-              @mouseleave="handleItemLeave"
             >
               <div class="flex gap-3">
                 <div class="flex-1 min-w-0">
@@ -480,10 +484,6 @@ const toggleComplete = async (todo: Todo) => {
     <div 
       v-if="hoveredItem" 
       class="absolute z-50 pointer-events-none transition-all duration-300 ease-out"
-      :class="{ 
-        'translate-x-[-5px]': tooltipSide === 'left', 
-        'translate-x-[5px]': tooltipSide === 'right' 
-      }"
       :style="tooltipStyle"
       @mouseenter="handleTooltipEnter"
       @mouseleave="handleTooltipLeave"

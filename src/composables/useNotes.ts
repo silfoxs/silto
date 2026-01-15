@@ -47,7 +47,7 @@ export function useNotes() {
 
     const sortedNotes = computed(() =>
         [...notes.value].sort((a, b) =>
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
     )
 

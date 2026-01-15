@@ -19,10 +19,6 @@ const containerRef = ref<HTMLElement | null>(null)
 
 // 滑块位置 (0-1)
 const sliderPosition = ref(0)
-// 是否正在拖拽/悬停
-const isHovering = ref(false)
-// 鼠标悬停时的临时位置
-const hoverPosition = ref(0)
 
 // 当前选中的索引
 const activeIndex = computed(() => {
@@ -34,10 +30,6 @@ const optionWidth = computed(() => 1 / props.options.length)
 
 // 计算滑块的实际位置
 const computedSliderPosition = computed(() => {
-  if (isHovering.value) {
-    return hoverPosition.value
-  }
-  // 确保初始状态也正确显示
   const idx = activeIndex.value >= 0 ? activeIndex.value : 0
   return idx * optionWidth.value
 })
@@ -59,27 +51,7 @@ watch(() => props.modelValue, () => {
   sliderPosition.value = activeIndex.value * optionWidth.value
 }, { immediate: true })
 
-// 处理鼠标移动
-const handleMouseMove = (e: MouseEvent) => {
-  if (!containerRef.value) return
-  
-  const rect = containerRef.value.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const relativeX = Math.max(0, Math.min(x / rect.width, 1))
-  
-  // 计算悬停位置，对齐到最近的选项
-  const optionIndex = Math.floor(relativeX * props.options.length)
-  const clampedIndex = Math.max(0, Math.min(optionIndex, props.options.length - 1))
-  hoverPosition.value = clampedIndex * optionWidth.value
-}
 
-const handleMouseEnter = () => {
-  isHovering.value = true
-}
-
-const handleMouseLeave = () => {
-  isHovering.value = false
-}
 
 // 处理点击
 const handleClick = (value: string) => {
@@ -96,16 +68,10 @@ onMounted(() => {
   <div
     :ref="(el) => containerRef = el as HTMLElement"
     class="liquid-glass-tabs relative inline-flex items-center bg-white dark:bg-black/60 backdrop-blur-xl border border-black/10 dark:border-white/20 rounded-full p-0.5 h-7 overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),inset_0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)] cursor-pointer"
-    @mousemove="handleMouseMove"
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
   >
     <!-- 液态玻璃滑块 -->
     <div
-      class="absolute top-0.5 bottom-0.5 rounded-full transition-all ease-out pointer-events-none"
-      :class="[
-        isHovering ? 'duration-150' : 'duration-300'
-      ]"
+      class="absolute top-0.5 bottom-0.5 rounded-full transition-all ease-out pointer-events-none duration-300"
       :style="sliderStyle"
     >
       <!-- 玻璃效果层 - 透明 + 细边框 -->
