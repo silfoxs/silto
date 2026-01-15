@@ -11,14 +11,12 @@ import WindowControls from '@/components/WindowControls.vue'
 import Button from '@/components/ui/Button.vue'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import LiquidGlassTabs from '@/components/ui/LiquidGlassTabs.vue'
-import { useSettings } from '@/composables/useSettings'
 import type { Todo, Note } from '@/types'
 import { useI18n } from 'vue-i18n'
 import { useTodos } from '@/composables/useTodos'
 import { useNotes } from '@/composables/useNotes'
 
 const { t } = useI18n()
-const { settings } = useSettings()
 const { loadTodos } = useTodos()
 const { loadNotes } = useNotes()
 
@@ -35,12 +33,15 @@ const viewTitle = computed(() => {
 
 // 监听托盘事件
 onMounted(async () => {
-  // 根据设置初始化视图
-  // activeView.value = settings.value.left_click_action // 移除此行，改用 watch
+  // 从 localStorage 恢复上次的视图状态
+  const savedView = localStorage.getItem('activeView')
+  if (savedView === 'todo' || savedView === 'note') {
+    activeView.value = savedView
+  }
 
-  // 监听 settings 变化，自动更新视图
-  watch(() => settings.value.left_click_action, (newAction: 'todo' | 'note') => {
-    activeView.value = newAction
+  // 监听 activeView 变化，保存到 localStorage 以便 popup 窗口同步
+  watch(() => activeView.value, (newView) => {
+    localStorage.setItem('activeView', newView)
   }, { immediate: true })
 
   // 监听托盘菜单事件

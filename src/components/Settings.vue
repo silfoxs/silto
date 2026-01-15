@@ -20,13 +20,6 @@ const emit = defineEmits<{
 
 const { settings, saveSettings } = useSettings()
 
-const handleLeftClickActionChange = async (action: 'todo' | 'note') => {
-  await saveSettings({
-    ...settings.value,
-    left_click_action: action,
-  })
-}
-
 const handleLanguageChange = async (lang: string) => {
   locale.value = lang
   localStorage.setItem('language', lang)
@@ -162,26 +155,7 @@ const handleCheckUpdate = async () => {
             </div>
           </div>
 
-          <!-- 左键点击行为 -->
-          <div>
-            <label class="text-sm font-medium mb-3 block">{{ $t('settings.leftClickAction') }}</label>
-            <div class="flex gap-2">
-              <Button
-                :variant="settings.left_click_action === 'todo' ? 'default' : 'outline'"
-                class="flex-1"
-                @click="handleLeftClickActionChange('todo')"
-              >
-                {{ $t('settings.todoList') }}
-              </Button>
-              <Button
-                :variant="settings.left_click_action === 'note' ? 'default' : 'outline'"
-                class="flex-1"
-                @click="handleLeftClickActionChange('note')"
-              >
-                {{ $t('settings.noteList') }}
-              </Button>
-            </div>
-          </div>
+
 
           <!-- 语言设置 -->
           <div>

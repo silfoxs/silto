@@ -8,7 +8,6 @@ import { emit } from '@tauri-apps/api/event'
 import { Plus, ExternalLink, Clock, CheckCircle, StickyNote, Trash2, Copy, Check, X } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import { useSettings } from '@/composables/useSettings'
 import { stripHtml } from '@/lib/utils'
 import type { Todo, Note } from '@/types'
 
@@ -17,7 +16,6 @@ const { t, locale } = useI18n()
 
 const todos = ref<Todo[]>([])
 const notes = ref<Note[]>([])
-const { settings, loadSettings } = useSettings()
 
 const monitor = ref<Monitor | null>(null)
 const updateMonitor = async () => {
@@ -65,10 +63,15 @@ const tooltipStyle = computed(() => {
   return style
 })
 
-// 根据设置显示的内容类型
-const displayMode = computed(() => {
-  return settings.value.left_click_action === 'note' ? 'note' : 'todo'
-})
+// 根据主界面显示的内容类型（从 localStorage 读取）
+const displayMode = ref<'todo' | 'note'>('todo')
+
+const loadDisplayMode = () => {
+  const savedView = localStorage.getItem('activeView')
+  if (savedView === 'todo' || savedView === 'note') {
+    displayMode.value = savedView
+  }
+}
 
 // 获取所有未完成的 Todo，按时间排序（有提醒时间的优先，然后按创建时间由近及远）
 const sortedTodos = computed(() => {
@@ -229,12 +232,12 @@ const handleCopy = async () => {
 
 onMounted(() => {
   loadData()
-  loadSettings()
+  loadDisplayMode()
   updateMonitor()
   
   // 监听窗口获得焦点事件（显示时刷新数据和设置）
   appWindow.listen('tauri://focus', () => {
-    loadSettings()
+    loadDisplayMode()
     loadData()
     updateMonitor()
     const saved = localStorage.getItem('language')
