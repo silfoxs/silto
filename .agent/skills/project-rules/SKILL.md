@@ -1,4 +1,5 @@
 ---
+name: project-rules
 description: AI 开发项目规范指南 - 包含项目架构说明和 UI 设计规范
 ---
 

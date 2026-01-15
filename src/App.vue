@@ -9,7 +9,8 @@ import NoteEditor from '@/components/NoteEditor.vue'
 import Settings from '@/components/Settings.vue'
 import WindowControls from '@/components/WindowControls.vue'
 import Button from '@/components/ui/Button.vue'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import LiquidGlassTabs from '@/components/ui/LiquidGlassTabs.vue'
 import { useSettings } from '@/composables/useSettings'
 import type { Todo, Note } from '@/types'
 import { useI18n } from 'vue-i18n'
@@ -132,20 +133,13 @@ const handleEditNote = (note: Note) => {
         >
           <SettingsIcon class="w-4 h-4" />
         </Button>
-        <TabsList class="bg-black/30 dark:bg-black/60 backdrop-blur-xl border border-white/20 rounded-lg p-0.5 h-7 overflow-hidden group shadow-inner">
-          <TabsTrigger 
-            value="todo"
-            class="px-3 h-full text-[10px] font-bold rounded-md transition-all duration-300 data-[state=inactive]:text-white/40 hover:data-[state=inactive]:text-white hover:data-[state=inactive]:bg-white/5 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.2)]"
-          >
-            Todo
-          </TabsTrigger>
-          <TabsTrigger 
-            value="note"
-            class="px-3 h-full text-[10px] font-bold rounded-md transition-all duration-300 data-[state=inactive]:text-white/40 hover:data-[state=inactive]:text-white hover:data-[state=inactive]:bg-white/5 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.2)]"
-          >
-            {{ $t('settings.noteList') }}
-          </TabsTrigger>
-        </TabsList>
+        <LiquidGlassTabs 
+          v-model="activeView" 
+          :options="[
+            { value: 'todo', label: 'Todo' },
+            { value: 'note', label: $t('settings.noteList') }
+          ]" 
+        />
       </div>
     </div>
 

@@ -1,5 +1,6 @@
 ---
-description: ui-ux-pro-max
+name: ui-ux-pro-max
+description: UI/UX Pro Max - Design Intelligence
 ---
 
 ---
