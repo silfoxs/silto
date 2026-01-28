@@ -1,114 +1,92 @@
+use crate::db::Database;
 use crate::models::{Note, Settings, Todo};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_store::StoreExt;
 
-const TODOS_STORE_KEY: &str = "todos";
-const NOTES_STORE_KEY: &str = "notes";
 const SETTINGS_STORE_KEY: &str = "settings";
 
 #[tauri::command]
 pub async fn get_todos(app: AppHandle) -> Result<Vec<Todo>, String> {
-    let store = app.store("store.json").map_err(|e| e.to_string())?;
-
-    let todos_value = store.get(TODOS_STORE_KEY);
-
-    if let Some(value) = todos_value {
-        let todos: Vec<Todo> = serde_json::from_value(value.clone())
-            .map_err(|e| format!("Failed to parse todos: {}", e))?;
-        Ok(todos)
-    } else {
-        Ok(vec![])
-    }
+    let db: State<Database> = app.state();
+    let todos = sqlx::query_as::<_, Todo>("SELECT * FROM todos ORDER BY created_at DESC")
+        .fetch_all(&db.pool)
+        .await
+        .map_err(|e| format!("Failed to fetch todos: {}", e))?;
+    Ok(todos)
 }
 
 #[tauri::command]
 pub async fn save_todo(app: AppHandle, todo: Todo) -> Result<(), String> {
-    let store = app.store("store.json").map_err(|e| e.to_string())?;
-
-    let mut todos = get_todos(app.clone()).await?;
-
-    // Check if todo exists, update or add
-    if let Some(pos) = todos.iter().position(|t| t.id == todo.id) {
-        todos[pos] = todo;
-    } else {
-        todos.push(todo);
-    }
-
-    let todos_value =
-        serde_json::to_value(&todos).map_err(|e| format!("Failed to serialize todos: {}", e))?;
-
-    store.set(TODOS_STORE_KEY, todos_value);
-    store.save().map_err(|e| e.to_string())?;
+    let db: State<Database> = app.state();
+    
+    // Store DateTime as string (rfc3339) or rely on sqlx implementation if supported
+    // Since we used TEXT in migration, we bind it carefully.
+    // If sqlx converts DateTime to string automatically, it works.
+    // If not, we might need manual bind. 
+    // Usually sqlx sqlite + chrono works fine.
+    
+    sqlx::query(
+        "INSERT OR REPLACE INTO todos (id, title, content, remind_time, completed, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+    )
+    .bind(todo.id)
+    .bind(todo.title)
+    .bind(todo.content)
+    .bind(todo.remind_time)
+    .bind(todo.completed)
+    .bind(todo.created_at)
+    .execute(&db.pool)
+    .await
+    .map_err(|e| format!("Failed to save todo: {}", e))?;
 
     Ok(())
 }
 
 #[tauri::command]
 pub async fn delete_todo(app: AppHandle, id: String) -> Result<(), String> {
-    let store = app.store("store.json").map_err(|e| e.to_string())?;
-
-    let mut todos = get_todos(app.clone()).await?;
-    todos.retain(|t| t.id != id);
-
-    let todos_value =
-        serde_json::to_value(&todos).map_err(|e| format!("Failed to serialize todos: {}", e))?;
-
-    store.set(TODOS_STORE_KEY, todos_value);
-    store.save().map_err(|e| e.to_string())?;
-
+    let db: State<Database> = app.state();
+    sqlx::query("DELETE FROM todos WHERE id = ?")
+        .bind(id)
+        .execute(&db.pool)
+        .await
+        .map_err(|e| format!("Failed to delete todo: {}", e))?;
     Ok(())
 }
 
 #[tauri::command]
 pub async fn get_notes(app: AppHandle) -> Result<Vec<Note>, String> {
-    let store = app.store("store.json").map_err(|e| e.to_string())?;
-
-    let notes_value = store.get(NOTES_STORE_KEY);
-
-    if let Some(value) = notes_value {
-        let notes: Vec<Note> = serde_json::from_value(value.clone())
-            .map_err(|e| format!("Failed to parse notes: {}", e))?;
-        Ok(notes)
-    } else {
-        Ok(vec![])
-    }
+    let db: State<Database> = app.state();
+    let notes = sqlx::query_as::<_, Note>("SELECT * FROM notes ORDER BY updated_at DESC")
+        .fetch_all(&db.pool)
+        .await
+        .map_err(|e| format!("Failed to fetch notes: {}", e))?;
+    Ok(notes)
 }
 
 #[tauri::command]
 pub async fn save_note(app: AppHandle, note: Note) -> Result<(), String> {
-    let store = app.store("store.json").map_err(|e| e.to_string())?;
-
-    let mut notes = get_notes(app.clone()).await?;
-
-    // Check if note exists, update or add
-    if let Some(pos) = notes.iter().position(|n| n.id == note.id) {
-        notes[pos] = note;
-    } else {
-        notes.push(note);
-    }
-
-    let notes_value =
-        serde_json::to_value(&notes).map_err(|e| format!("Failed to serialize notes: {}", e))?;
-
-    store.set(NOTES_STORE_KEY, notes_value);
-    store.save().map_err(|e| e.to_string())?;
-
+    let db: State<Database> = app.state();
+    sqlx::query(
+        "INSERT OR REPLACE INTO notes (id, title, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
+    )
+    .bind(note.id)
+    .bind(note.title)
+    .bind(note.content)
+    .bind(note.created_at)
+    .bind(note.updated_at)
+    .execute(&db.pool)
+    .await
+    .map_err(|e| format!("Failed to save note: {}", e))?;
     Ok(())
 }
 
 #[tauri::command]
 pub async fn delete_note(app: AppHandle, id: String) -> Result<(), String> {
-    let store = app.store("store.json").map_err(|e| e.to_string())?;
-
-    let mut notes = get_notes(app.clone()).await?;
-    notes.retain(|n| n.id != id);
-
-    let notes_value =
-        serde_json::to_value(&notes).map_err(|e| format!("Failed to serialize notes: {}", e))?;
-
-    store.set(NOTES_STORE_KEY, notes_value);
-    store.save().map_err(|e| e.to_string())?;
-
+    let db: State<Database> = app.state();
+    sqlx::query("DELETE FROM notes WHERE id = ?")
+        .bind(id)
+        .execute(&db.pool)
+        .await
+        .map_err(|e| format!("Failed to delete note: {}", e))?;
     Ok(())
 }
 
@@ -146,6 +124,7 @@ pub async fn save_settings(app: AppHandle, settings: Settings) -> Result<(), Str
 
     Ok(())
 }
+
 #[tauri::command]
 pub async fn apply_vibrancy(app: AppHandle, theme: String) -> Result<(), String> {
     #[cfg(target_os = "macos")]

@@ -1,4 +1,6 @@
 mod commands;
+mod db;
+mod migration;
 mod models;
 mod notification;
 mod tray;
@@ -16,8 +18,19 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_sql::Builder::default().build())
         .manage(NotificationState::new())
         .setup(|app| {
+            // 初始化数据库
+            let db = tauri::async_runtime::block_on(db::init_db(app.handle()))
+                 .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>)?;
+            
+            // 检查并迁移数据
+            tauri::async_runtime::block_on(migration::check_and_migrate_from_json(app.handle(), &db))
+                 .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>)?;
+
+            app.manage(db);
+
             // 创建系统托盘
             tray::create_tray(app.handle())?;
 

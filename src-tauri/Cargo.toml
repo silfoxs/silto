@@ -34,6 +34,8 @@ tokio = { version = "1", features = ["time"] }
 image = "0.25.9"
 window-vibrancy = "0.7.1"
 tauri-plugin-process = "2"
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "tls-native-tls", "sqlite", "chrono"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.26"
