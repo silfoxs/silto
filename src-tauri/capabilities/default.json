@@ -19,6 +19,7 @@
     "core:window:allow-maximize",
     "core:window:allow-toggle-maximize",
     "core:window:allow-hide",
+    "core:window:allow-start-dragging",
     "process:default"
   ]
 }

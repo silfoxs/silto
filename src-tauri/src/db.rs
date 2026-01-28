@@ -1,4 +1,4 @@
-use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite, SqlitePool};
+use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Sqlite, SqlitePool};
 use std::fs;
 use tauri::AppHandle;
 use tauri::Manager;

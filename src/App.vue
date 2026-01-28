@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { listen } from '@tauri-apps/api/event'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { Plus, Settings as SettingsIcon } from 'lucide-vue-next'
 import TodoList from '@/components/TodoList.vue'
 import NoteList from '@/components/NoteList.vue'
@@ -30,6 +31,19 @@ const editingNote = ref<Note | null>(null)
 const viewTitle = computed(() => {
   return activeView.value === 'todo' ? 'Todo' : t('settings.noteList')
 })
+
+// ----------------------------------------------------------------------
+// Window Drag Logic
+// ----------------------------------------------------------------------
+const startDrag = (e: MouseEvent) => {
+  // Ignore clicks on buttons or interactive elements
+  if ((e.target as HTMLElement).closest('button, a, input, [role="button"]')) {
+    return
+  }
+  
+  getCurrentWindow().startDragging()
+}
+// ----------------------------------------------------------------------
 
 // 监听托盘事件
 onMounted(async () => {
@@ -119,7 +133,10 @@ const handleEditNote = (note: Note) => {
     </div>
 
     <!-- Title Bar -->
-    <div class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between z-20 px-4 pt-4 pb-2" data-tauri-drag-region>
+    <div 
+      class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between z-20 px-4 pt-4 pb-2 select-none"
+      @mousedown="startDrag"
+    >
       <div class="flex items-center gap-3">
         <WindowControls />
         <h1 class="text-xl font-bold select-none text-foreground/90 pointer-events-none">{{ viewTitle }}</h1>
