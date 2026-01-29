@@ -9,6 +9,8 @@ pub struct Todo {
     pub remind_time: Option<DateTime<Utc>>,
     pub completed: bool,
     pub created_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub notified: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]

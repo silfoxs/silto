@@ -42,12 +42,19 @@ pub async fn init_db(app: &AppHandle) -> Result<Database, String> {
             content TEXT NOT NULL,
             remind_time TEXT,
             completed BOOLEAN NOT NULL DEFAULT 0,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            notified BOOLEAN NOT NULL DEFAULT 0
         )",
     )
     .execute(&pool)
     .await
     .map_err(|e| format!("Failed to create todos table: {}", e))?;
+
+    // Attempt to add the column if it doesn't exist (primitive migration)
+    // We ignore error because if column exists it implies success or a different error we can't easily handle without more check
+    let _ = sqlx::query("ALTER TABLE todos ADD COLUMN notified BOOLEAN NOT NULL DEFAULT 0")
+        .execute(&pool)
+        .await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS notes (

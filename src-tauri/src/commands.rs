@@ -25,8 +25,20 @@ pub async fn save_todo(app: AppHandle, todo: Todo) -> Result<(), String> {
     // If not, we might need manual bind. 
     // Usually sqlx sqlite + chrono works fine.
     
+    // Check if we need to reset notified status
+    // If there is a remind time and it's in the future, we reset notified to false
+    // regardless of what the frontend sent.
+    let mut todo = todo;
+    if let Some(remind_time) = todo.remind_time {
+        if remind_time > chrono::Utc::now() {
+            todo.notified = false;
+        }
+    } else {
+        todo.notified = false;
+    }
+
     sqlx::query(
-        "INSERT OR REPLACE INTO todos (id, title, content, remind_time, completed, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT OR REPLACE INTO todos (id, title, content, remind_time, completed, created_at, notified) VALUES (?, ?, ?, ?, ?, ?, ?)"
     )
     .bind(todo.id)
     .bind(todo.title)
@@ -34,6 +46,7 @@ pub async fn save_todo(app: AppHandle, todo: Todo) -> Result<(), String> {
     .bind(todo.remind_time)
     .bind(todo.completed)
     .bind(todo.created_at)
+    .bind(todo.notified)
     .execute(&db.pool)
     .await
     .map_err(|e| format!("Failed to save todo: {}", e))?;

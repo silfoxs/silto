@@ -5,7 +5,7 @@ mod models;
 mod notification;
 mod tray;
 
-use notification::NotificationState;
+
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,7 +19,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sql::Builder::default().build())
-        .manage(NotificationState::new())
+        .plugin(tauri_plugin_sql::Builder::default().build())
         .setup(|app| {
             // 初始化数据库
             let db = tauri::async_runtime::block_on(db::init_db(app.handle()))
