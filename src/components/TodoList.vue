@@ -46,6 +46,11 @@ const formatDate = (dateStr: string) => {
     minute: '2-digit' 
   })
 }
+
+const isOverdue = (todo: Todo) => {
+  if (!todo.remind_time || todo.completed) return false
+  return new Date(todo.remind_time).getTime() < Date.now()
+}
 </script>
 
 <template>
@@ -56,7 +61,12 @@ const formatDate = (dateStr: string) => {
         <div 
           v-for="todo in activeTodos" 
           :key="todo.id"
-          class="group p-3 rounded-xl border border-black/[0.05] dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer animate-slide-in shadow-sm hover:shadow-md"
+          class="group p-3 rounded-xl border transition-all duration-300 cursor-pointer animate-slide-in shadow-sm hover:shadow-md backdrop-blur-md"
+          :class="[
+            isOverdue(todo) 
+              ? 'border-red-500/50 bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.25)] dark:shadow-[0_0_15px_rgba(239,68,68,0.4)]' 
+              : 'border-black/[0.05] dark:border-white/10 bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10'
+          ]"
           @click="emit('edit', todo)"
         >
           <div class="flex items-center gap-3">

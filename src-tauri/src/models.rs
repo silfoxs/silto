@@ -10,6 +10,7 @@ pub struct Todo {
     pub completed: bool,
     pub created_at: DateTime<Utc>,
     #[sqlx(default)]
+    #[serde(default)]
     pub notified: bool,
 }
 
