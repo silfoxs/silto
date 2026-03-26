@@ -173,19 +173,10 @@ const handleSaveNote = async (note: Partial<Note>) => {
   <!-- Main Container: Transparent + Rounded + Border -->
   <Tabs
     v-model="activeView"
-    class="flex flex-col h-screen bg-white/82 dark:bg-black/[0.94] backdrop-blur-2xl text-foreground rounded-[16px] border border-white/20 dark:border-white/14 overflow-hidden relative"
+    class="flex flex-col h-screen bg-white/[0.06] dark:bg-black/[0.18] backdrop-blur-[40px] text-foreground rounded-[16px] border border-black/[0.08] dark:border-white/14 overflow-hidden relative"
   >
-    <div class="absolute inset-0 rounded-[16px] bg-white/82 dark:bg-black z-0 pointer-events-none"></div>
-
-    <!-- Gradient Blur Layers -->
-    <div class="absolute top-0 left-0 right-0 h-20 z-10 pointer-events-none overflow-hidden select-none rounded-t-[16px]">
-      <div class="absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_25%)]"></div>
-      <div class="absolute inset-0 backdrop-blur-[4px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_50%)]"></div>
-      <div class="absolute inset-0 backdrop-blur-[8px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_75%)]"></div>
-      <div class="absolute inset-0 backdrop-blur-[16px] [mask-image:linear-gradient(to_bottom,black_0%,black_25%,transparent_100%)]"></div>
-      <div class="absolute inset-0 backdrop-blur-[24px] [mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)]"></div>
-      <div class="absolute inset-0 backdrop-blur-[40px] [mask-image:linear-gradient(to_bottom,black_0%,black_75%,transparent_100%)]"></div>
-    </div>
+    <div class="absolute inset-0 rounded-[16px] bg-white/[0.02] dark:bg-black/[0.12] z-0 pointer-events-none"></div>
+    <div class="absolute inset-0 rounded-[16px] bg-white/[0.44] dark:bg-black/[0.56] z-0 pointer-events-none"></div>
 
     <!-- Title Bar -->
     <div 
@@ -220,9 +211,9 @@ const handleSaveNote = async (note: Partial<Note>) => {
     </div>
 
     <!-- Main Content -->
-    <div class="relative z-10 flex-1 min-h-0 bg-transparent dark:bg-black/[0.94]">
+    <div class="relative z-10 flex-1 min-h-0 bg-transparent">
       <div v-if="activePage === 'main'" class="flex h-full gap-3 overflow-hidden rounded-[16px] p-3">
-        <div class="min-w-0 w-[360px] shrink-0 rounded-[16px] bg-white/72 dark:bg-black/[0.58] backdrop-blur-2xl overflow-hidden relative">
+        <div class="min-w-0 w-[360px] shrink-0 rounded-[16px] bg-white/[0.05] dark:bg-black/[0.18] backdrop-blur-[32px] overflow-hidden relative">
           <div class="h-full rounded-[16px] border border-black/[0.06] bg-white dark:border-white/18 dark:bg-black/[0.64]">
             <TodoList v-if="activeView === 'todo'" :selected-id="selectedTodoId" @edit="handleEditTodo" />
             <NoteList v-else :selected-id="selectedNoteId" @edit="handleEditNote" />
@@ -249,7 +240,7 @@ const handleSaveNote = async (note: Partial<Note>) => {
           </div>
         </div>
 
-        <div class="min-w-0 flex-1 rounded-[16px] bg-white/72 dark:bg-black/[0.58] backdrop-blur-2xl overflow-hidden">
+        <div class="min-w-0 flex-1 rounded-[16px] bg-white/[0.05] dark:bg-black/[0.18] backdrop-blur-[32px] overflow-hidden">
           <div class="h-full min-h-0 rounded-[16px] border border-black/[0.06] bg-white dark:border-white/18 dark:bg-black/[0.64] p-4 pt-16 relative">
             <TodoForm
               v-if="isTodoEditorVisible"
