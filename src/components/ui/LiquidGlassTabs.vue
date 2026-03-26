@@ -67,7 +67,7 @@ onMounted(() => {
 <template>
   <div
     :ref="(el) => containerRef = el as HTMLElement"
-    class="liquid-glass-tabs relative inline-flex items-center bg-white dark:bg-black/60 backdrop-blur-xl border border-black/10 dark:border-white/20 rounded-full p-0.5 h-7 overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),inset_0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)] cursor-pointer"
+    class="liquid-glass-tabs relative inline-flex items-center bg-white dark:bg-black/[0.78] backdrop-blur-2xl border border-black/10 dark:border-white/14 rounded-full p-1 h-10 overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),inset_0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)] cursor-pointer"
   >
     <!-- 液态玻璃滑块 -->
     <div
@@ -75,7 +75,7 @@ onMounted(() => {
       :style="sliderStyle"
     >
       <!-- 玻璃效果层 - 透明 + 细边框 -->
-      <div class="absolute inset-0 rounded-full bg-transparent border border-black/30 dark:border-white/40 shadow-[0_1px_2px_rgba(0,0,0,0.1)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.1)]">
+      <div class="absolute inset-0 rounded-full bg-transparent border border-black/30 dark:border-white/22 shadow-[0_1px_2px_rgba(0,0,0,0.1)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.06)]">
       </div>
     </div>
     
@@ -83,7 +83,7 @@ onMounted(() => {
     <div 
       v-for="option in options" 
       :key="option.value"
-      class="relative z-10 flex-1 flex items-center justify-center h-full px-2 text-xs font-bold transition-colors duration-200 select-none"
+      class="relative z-10 flex-1 flex items-center justify-center h-full px-4 text-sm font-bold transition-colors duration-200 select-none"
       :class="[
         modelValue === option.value 
           ? 'text-black dark:text-white font-semibold' 

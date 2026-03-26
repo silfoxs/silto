@@ -4,21 +4,18 @@ import { useI18n } from 'vue-i18n'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { currentMonitor, type Monitor } from '@tauri-apps/api/window'
-import { emit } from '@tauri-apps/api/event'
-import { Plus, ExternalLink, Clock, CheckCircle, StickyNote, Trash2, Copy, Check, X } from 'lucide-vue-next'
+import { emit, listen } from '@tauri-apps/api/event'
+import { ExternalLink, Clock, CheckCircle, StickyNote, Trash2, Copy, Check, X } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import { stripHtml } from '@/lib/utils'
-import type { Todo, Note } from '@/types'
+import type { Todo, Note, Settings, Theme } from '@/types'
 
 const appWindow = getCurrentWebviewWindow()
 const { t, locale } = useI18n()
-import { useSettings } from '@/composables/useSettings'
-
-const { loadSettings } = useSettings()
 
 const todos = ref<Todo[]>([])
 const notes = ref<Note[]>([])
+const popupTheme = ref<'light' | 'dark'>('light')
 
 const monitor = ref<Monitor | null>(null)
 const updateMonitor = async () => {
@@ -43,7 +40,7 @@ const tooltipStyle = computed(() => {
   // Calculate vertical position (prevent overflow)
   let top = mainRect.top
   const winHeight = window.innerHeight
-  const estimatedHeight = 300 // Estimate average height
+  const estimatedHeight = 420
   
   if (top + estimatedHeight > winHeight) {
     top = Math.max(10, winHeight - estimatedHeight - 20)
@@ -73,6 +70,27 @@ const loadDisplayMode = () => {
   const savedView = localStorage.getItem('activeView')
   if (savedView === 'todo' || savedView === 'note') {
     displayMode.value = savedView
+  }
+}
+
+const resolveEffectiveTheme = (theme: Theme): 'light' | 'dark' => {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return theme
+}
+
+const applyPopupTheme = (theme: 'light' | 'dark') => {
+  popupTheme.value = theme
+  document.documentElement.classList.toggle('dark', theme === 'dark')
+}
+
+const loadPopupTheme = async () => {
+  try {
+    const settings = await invoke<Settings>('get_settings')
+    applyPopupTheme(resolveEffectiveTheme(settings.theme))
+  } catch (error) {
+    console.error('Failed to load popup theme:', error)
   }
 }
 
@@ -237,14 +255,23 @@ onMounted(() => {
   loadData()
   loadDisplayMode()
   updateMonitor()
-  loadSettings()
+  loadPopupTheme()
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  mediaQuery.onchange = () => {
+    loadPopupTheme()
+  }
+
+  listen<Settings>('settings-changed', (event) => {
+    applyPopupTheme(resolveEffectiveTheme(event.payload.theme))
+  })
   
   // 监听窗口获得焦点事件（显示时刷新数据和设置）
   appWindow.listen('tauri://focus', () => {
     loadDisplayMode()
     loadData()
     updateMonitor()
-    loadSettings()
+    loadPopupTheme()
     const saved = localStorage.getItem('language')
     if (saved) {
       locale.value = saved
@@ -263,30 +290,6 @@ const openMainWindow = async () => {
   const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
   const mainWindow = await WebviewWindow.getByLabel('main')
   if (mainWindow) {
-    await mainWindow.show()
-    await mainWindow.setFocus()
-  }
-  appWindow.hide()
-}
-
-// 打开主窗口并添加 Todo
-const addTodo = async () => {
-  const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
-  const mainWindow = await WebviewWindow.getByLabel('main')
-  if (mainWindow) {
-    await mainWindow.emit('tray-add-todo', {})
-    await mainWindow.show()
-    await mainWindow.setFocus()
-  }
-  appWindow.hide()
-}
-
-// 打开主窗口并添加便签
-const addNote = async () => {
-  const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
-  const mainWindow = await WebviewWindow.getByLabel('main')
-  if (mainWindow) {
-    await mainWindow.emit('tray-add-note', {})
     await mainWindow.show()
     await mainWindow.setFocus()
   }
@@ -334,15 +337,14 @@ const toggleComplete = async (todo: Todo) => {
 </script>
 
 <template>
-  <div class="popup-container relative h-screen w-screen flex flex-col p-4 box-border" @click="appWindow.hide()">
+  <div :class="['popup-container', popupTheme === 'dark' ? 'dark' : '', 'relative h-screen w-screen flex flex-col p-4 box-border']" @click="appWindow.hide()">
     <!-- 箭头指向状态栏图标 -->
     <div 
-      class="arrow-up pointer-events-auto absolute top-[9px] left-1/2 w-4 h-4 -translate-x-1/2 rotate-45 z-50 rounded-tl-[4px] backdrop-blur-[24px] bg-gradient-to-br from-white/60 to-white/40 dark:from-black/60 dark:to-black/40"
-      style="will-change: backdrop-filter; -webkit-backdrop-filter: blur(24px);"
+      class="arrow-up popup-glass-arrow pointer-events-auto absolute top-[9px] left-1/2 w-4 h-4 -translate-x-1/2 rotate-45 z-50 rounded-tl-[4px]"
     ></div>
     
     <!-- 主内容区域 - 液态玻璃效果 -->
-    <div ref="mainContentRef" class="popup-content h-[420px] bg-white/60 dark:bg-black/60 backdrop-blur-3xl backdrop-saturate-150 text-foreground rounded-2xl overflow-hidden relative flex flex-col w-[340px] mx-auto" @click.stop style="will-change: backpack-filter; -webkit-backdrop-filter: blur(64px);">
+    <div ref="mainContentRef" class="popup-content popup-glass-panel h-[420px] text-foreground rounded-2xl overflow-hidden relative flex flex-col w-[340px] mx-auto" @click.stop>
       
       <!-- 顶部标题栏背景 (独立层，用于实现渐变高斯模糊) -->
       <div 
@@ -357,12 +359,13 @@ const toggleComplete = async (todo: Todo) => {
           {{ displayMode === 'todo' ? t('settings.todoList') : t('settings.noteList') }}
         </h2>
         <Button 
-          variant="ghost" 
-          size="icon" 
-          class="h-6 w-6 hover:bg-white/20 dark:hover:bg-black/20 rounded-full pointer-events-auto"
+          variant="ghost"
+          class="h-7 px-2.5 gap-1.5 hover:bg-white/20 dark:hover:bg-white/[0.06] rounded-full pointer-events-auto text-[11px] font-medium text-foreground/80"
           @click="openMainWindow"
+          :title="t('popup.openMainWindow')"
         >
           <ExternalLink class="w-3.5 h-3.5 opacity-70" />
+          <span>{{ t('popup.openMainWindowShort') }}</span>
         </Button>
       </div>
 
@@ -374,7 +377,7 @@ const toggleComplete = async (todo: Todo) => {
             <div 
               v-for="todo in sortedTodos" 
               :key="todo.id"
-              class="p-2.5 rounded-xl bg-white/40 dark:bg-black/40 hover:bg-white/50 dark:hover:bg-black/50 border border-white/40 dark:border-white/20 cursor-pointer transition-all duration-200 shadow hover:shadow-md group ring-1 ring-white/10 dark:ring-white/5"
+              class="popup-item-card p-2.5 rounded-xl cursor-pointer transition-all duration-200 shadow hover:shadow-md group border border-black/10 dark:border-white/28"
               @click="handleTodoClick(todo)"
               @mouseenter="handleItemHover(todo, 'todo')"
             >
@@ -385,9 +388,9 @@ const toggleComplete = async (todo: Todo) => {
                 >
                   <Check v-if="todo.completed" class="w-2.5 h-2.5 text-primary" />
                 </div>
-                <div class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0 overflow-hidden">
                   <div class="text-sm font-medium leading-none truncate">{{ todo.title }}</div>
-                  <div v-if="todo.content" class="text-xs text-foreground/50 line-clamp-2 mt-1.5 leading-relaxed">{{ todo.content }}</div>
+                  <div v-if="todo.content" class="popup-rich-preview text-xs text-foreground/50 mt-1.5 leading-relaxed" v-html="todo.content"></div>
                   <div v-if="todo.remind_time" class="text-[10px] text-primary/70 mt-1.5 flex items-center">
                     <Clock class="w-3 h-3 mr-1" />
                     {{ new Date(todo.remind_time).toLocaleString() }}
@@ -404,7 +407,7 @@ const toggleComplete = async (todo: Todo) => {
             </div>
           </div>
           <div v-else class="h-full flex flex-col items-center justify-center text-foreground/40 space-y-2">
-            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center">
+            <div class="popup-empty-badge w-12 h-12 rounded-full flex items-center justify-center">
               <CheckCircle class="w-6 h-6 opacity-50" />
             </div>
             <span class="text-xs">{{ t('popup.noTodos') }}</span>
@@ -417,14 +420,14 @@ const toggleComplete = async (todo: Todo) => {
             <div 
               v-for="note in sortedNotes" 
               :key="note.id"
-              class="p-2.5 rounded-xl bg-white/40 dark:bg-black/40 hover:bg-white/50 dark:hover:bg-black/50 border border-white/40 dark:border-white/20 cursor-pointer transition-all duration-200 shadow hover:shadow-md ring-1 ring-white/10 dark:ring-white/5 group"
+              class="popup-item-card p-2.5 rounded-xl cursor-pointer transition-all duration-200 shadow hover:shadow-md group border border-black/10 dark:border-white/28"
               @click="handleNoteClick(note)"
               @mouseenter="handleItemHover(note, 'note')"
             >
               <div class="flex gap-3">
-                <div class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0 overflow-hidden">
                   <div class="text-sm font-medium leading-none truncate">{{ note.title || '无标题' }}</div>
-                  <div class="text-xs text-foreground/50 line-clamp-2 mt-1.5 leading-relaxed">{{ stripHtml(note.content) }}</div>
+                  <div class="popup-rich-preview text-xs text-foreground/50 mt-1.5 leading-relaxed" v-html="note.content"></div>
                   <div class="text-[10px] text-foreground/30 mt-2 text-right">
                     {{ new Date(note.created_at).toLocaleDateString() }}
                   </div>
@@ -440,7 +443,7 @@ const toggleComplete = async (todo: Todo) => {
             </div>
           </div>
           <div v-else class="h-full flex flex-col items-center justify-center text-foreground/40 space-y-2">
-            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center">
+            <div class="popup-empty-badge w-12 h-12 rounded-full flex items-center justify-center">
               <StickyNote class="w-6 h-6 opacity-50" />
             </div>
             <span class="text-xs">{{ t('popup.noNotes') }}</span>
@@ -450,21 +453,6 @@ const toggleComplete = async (todo: Todo) => {
 
     
       <!-- 内容详情悬浮窗 (Moved outside popup-content) -->
-      
-      <!-- 底部新建按钮 (悬浮 - 移除背景遮罩) -->
-      <div class="absolute bottom-2 left-3 right-3 z-30 pointer-events-none">
-        <div class="w-full pointer-events-auto">
-          <Button 
-            class="w-full h-10 bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 text-foreground/90 rounded-full shadow-lg backdrop-blur-xl border border-white/50 dark:border-white/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] font-medium text-xs ring-1 ring-white/20 dark:ring-white/10"
-            @click="displayMode === 'todo' ? addTodo() : addNote()"
-          >
-            <div class="flex items-center justify-center gap-2">
-              <Plus class="w-4 h-4 opacity-90" />
-              <span class="tracking-wide opacity-100 font-semibold">{{ displayMode === 'todo' ? t('todo.newTodo') : t('note.newNote') }}</span>
-            </div>
-          </Button>
-        </div>
-      </div>
       
       <!-- 确认删除对话框 -->
       <ConfirmDialog
@@ -489,19 +477,18 @@ const toggleComplete = async (todo: Todo) => {
       @mouseleave="handleTooltipLeave"
     >
       <div 
-        class="relative flex flex-col bg-white/70 dark:bg-black/70 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl w-[360px] max-h-[400px] overflow-hidden transform-gpu pointer-events-auto"
-        style="will-change: backdrop-filter; -webkit-backdrop-filter: blur(40px);"
+        class="popup-tooltip-panel popup-detail-shell relative flex flex-col rounded-2xl w-[360px] h-[420px] overflow-hidden transform-gpu pointer-events-auto"
         @click.stop
       >
         <!-- Title Header -->
-        <div class="px-4 py-3 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/5 flex items-center justify-between">
+        <div class="popup-detail-header px-4 py-3 border-b flex items-center justify-between">
            <div class="font-semibold text-sm leading-snug text-foreground/90 truncate flex-1 min-w-0 mr-2">
              {{ hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).title : ((hoveredItem.item as Note).title || t('popup.noteDetails')) }}
            </div>
            
            <!-- Copy Button -->
            <button 
-             class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all duration-200"
+             class="popup-detail-action flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-foreground/50 hover:text-foreground transition-all duration-200"
              @click.stop="handleCopy"
              :title="copied ? t('popup.copied') : (copyError ? t('popup.copyFailed') : t('popup.copyContent'))"
            >
@@ -511,21 +498,26 @@ const toggleComplete = async (todo: Todo) => {
            </button>
         </div>
 
-        <div class="p-4 overflow-y-auto custom-scrollbar">
-          <div class="text-[13px] leading-6 text-foreground/80 whitespace-pre-wrap break-words font-normal">
-            {{ hoveredItem.type === 'todo' ? ((hoveredItem.item as Todo).content || t('popup.noDetails')) : (hoveredItem.item as Note).content }}
+        <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 py-4">
+          <div
+            v-if="hoveredItem.type === 'todo' ? !!((hoveredItem.item as Todo).content) : !!((hoveredItem.item as Note).content)"
+            class="popup-rich-content text-[13px] text-foreground/80 font-normal"
+            v-html="hoveredItem.type === 'todo' ? (((hoveredItem.item as Todo).content || '')) : ((hoveredItem.item as Note).content)"
+          ></div>
+          <div v-else class="text-[13px] leading-6 text-foreground/60 font-normal">
+            {{ t('popup.noDetails') }}
           </div>
-          
-          <div class="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between group/meta">
-             <div class="flex items-center text-[11px] text-foreground/40 font-medium">
-                <Clock class="w-3.5 h-3.5 mr-1.5 opacity-70" />
-                {{ new Date(hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).created_at : (hoveredItem.item as Note).updated_at).toLocaleString() }}
-             </div>
-             <div v-if="hoveredItem.type === 'todo' && (hoveredItem.item as Todo).remind_time" class="flex items-center text-[11px] text-primary/80 font-medium bg-primary/5 px-2 py-0.5 rounded-full">
-                <Clock class="w-3 h-3 mr-1" />
-                {{ new Date((hoveredItem.item as Todo).remind_time!).toLocaleTimeString() }}
-             </div>
-          </div>
+        </div>
+
+        <div class="popup-detail-footer px-4 py-3 border-t flex items-center justify-between group/meta">
+           <div class="flex items-center text-[11px] text-foreground/40 font-medium">
+              <Clock class="w-3.5 h-3.5 mr-1.5 opacity-70" />
+              {{ new Date(hoveredItem.type === 'todo' ? (hoveredItem.item as Todo).created_at : (hoveredItem.item as Note).updated_at).toLocaleString() }}
+           </div>
+           <div v-if="hoveredItem.type === 'todo' && (hoveredItem.item as Todo).remind_time" class="flex items-center text-[11px] text-primary/80 font-medium bg-primary/5 px-2 py-0.5 rounded-full">
+              <Clock class="w-3 h-3 mr-1" />
+              {{ new Date((hoveredItem.item as Todo).remind_time!).toLocaleTimeString() }}
+           </div>
         </div>
       </div>
     </div>
@@ -533,6 +525,219 @@ const toggleComplete = async (todo: Todo) => {
 </template>
 
 <style scoped>
+.popup-container {
+  isolation: isolate;
+  --popup-panel-bg: rgba(255, 255, 255, 0.78);
+  --popup-panel-border: rgba(255, 255, 255, 0.5);
+  --popup-panel-highlight: rgba(255, 255, 255, 0.35);
+  --popup-arrow-from: rgba(255, 255, 255, 0.82);
+  --popup-arrow-to: rgba(255, 255, 255, 0.64);
+  --popup-item-bg: rgba(255, 255, 255, 0.4);
+  --popup-item-hover-bg: rgba(255, 255, 255, 0.5);
+  --popup-item-border: rgba(255, 255, 255, 0.52);
+  --popup-item-ring: rgba(255, 255, 255, 0.16);
+  --popup-detail-strip-bg: rgba(255, 255, 255, 0.3);
+  --popup-detail-strip-border: rgba(0, 0, 0, 0.05);
+  --popup-detail-action-hover: rgba(0, 0, 0, 0.05);
+  --popup-empty-bg: rgba(0, 0, 0, 0.05);
+}
+
+.popup-glass-panel {
+  background: var(--popup-panel-bg);
+  border: 1px solid var(--popup-panel-border);
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.16),
+    inset 0 1px 0 var(--popup-panel-highlight);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  transform: translateZ(0);
+}
+
+.popup-glass-arrow {
+  background: linear-gradient(to bottom right, var(--popup-arrow-from), var(--popup-arrow-to));
+  border-top: 1px solid var(--popup-panel-border);
+  border-left: 1px solid var(--popup-panel-border);
+  box-shadow: -6px -6px 20px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+}
+
+.popup-tooltip-panel {
+  background: var(--popup-panel-bg);
+  border: 1px solid var(--popup-panel-border);
+  box-shadow:
+    0 18px 42px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 var(--popup-panel-highlight);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  transform: translateZ(0);
+}
+
+.popup-item-card {
+  background: var(--popup-item-bg);
+  box-shadow:
+    0 0 0 1px var(--popup-item-ring) inset,
+    0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.popup-item-card:hover {
+  background: var(--popup-item-hover-bg);
+}
+
+.popup-detail-header,
+.popup-detail-footer {
+  border-color: var(--popup-detail-strip-border);
+  background: var(--popup-detail-strip-bg);
+}
+
+.popup-detail-action:hover {
+  background: var(--popup-detail-action-hover);
+}
+
+.popup-empty-badge {
+  background: var(--popup-empty-bg);
+}
+
+.popup-container.dark {
+  --popup-panel-bg: rgba(0, 0, 0, 0.88);
+  --popup-panel-border: rgba(255, 255, 255, 0.16);
+  --popup-panel-highlight: rgba(255, 255, 255, 0.05);
+  --popup-arrow-from: rgba(8, 8, 8, 0.92);
+  --popup-arrow-to: rgba(0, 0, 0, 0.82);
+  --popup-item-bg: rgba(0, 0, 0, 0.82);
+  --popup-item-hover-bg: rgba(0, 0, 0, 0.92);
+  --popup-item-border: rgba(255, 255, 255, 0.22);
+  --popup-item-ring: rgba(255, 255, 255, 0.12);
+  --popup-detail-strip-bg: rgba(0, 0, 0, 0.90);
+  --popup-detail-strip-border: rgba(255, 255, 255, 0.14);
+  --popup-detail-action-hover: rgba(255, 255, 255, 0.08);
+  --popup-empty-bg: rgba(255, 255, 255, 0.06);
+}
+
+.popup-container.dark .popup-item-card {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+    0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.popup-rich-preview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.popup-rich-preview :deep(p),
+.popup-rich-preview :deep(ul),
+.popup-rich-preview :deep(ol),
+.popup-rich-preview :deep(blockquote),
+.popup-rich-preview :deep(pre),
+.popup-rich-preview :deep(h1),
+.popup-rich-preview :deep(h2),
+.popup-rich-preview :deep(h3) {
+  margin: 0;
+}
+
+.popup-rich-preview :deep(ul),
+.popup-rich-preview :deep(ol) {
+  padding-left: 1rem;
+}
+
+.popup-rich-content {
+  line-height: 1.65;
+  word-break: break-word;
+}
+
+.popup-rich-content :deep(strong) {
+  font-weight: 700;
+}
+
+.popup-rich-content :deep(em) {
+  font-style: italic;
+}
+
+.popup-rich-content :deep(p),
+.popup-rich-content :deep(ul),
+.popup-rich-content :deep(ol),
+.popup-rich-content :deep(blockquote),
+.popup-rich-content :deep(pre),
+.popup-rich-content :deep(h1),
+.popup-rich-content :deep(h2),
+.popup-rich-content :deep(h3) {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.popup-rich-content :deep(ul),
+.popup-rich-content :deep(ol) {
+  padding-left: 1.25rem;
+}
+
+.popup-rich-content :deep(ul) {
+  list-style-type: disc;
+}
+
+.popup-rich-content :deep(ol) {
+  list-style-type: decimal;
+}
+
+.popup-rich-content :deep(li) {
+  margin: 0.3rem 0;
+}
+
+.popup-rich-content :deep(h1) {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.popup-rich-content :deep(h2) {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.popup-rich-content :deep(blockquote) {
+  padding: 0.7rem 0.9rem;
+  border-left: 3px solid rgba(15, 23, 42, 0.16);
+  border-radius: 0 12px 12px 0;
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.popup-rich-content :deep(pre) {
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.05);
+  white-space: pre-wrap;
+}
+
+.popup-rich-content :deep(pre code) {
+  background: transparent;
+  padding: 0;
+  font-size: 0.84rem;
+}
+
+.popup-rich-content :deep(code) {
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.06);
+  padding: 0.1rem 0.32rem;
+  font-size: 0.84em;
+}
+
+.popup-container.dark .popup-rich-content :deep(blockquote) {
+  border-left-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.popup-container.dark .popup-rich-content :deep(pre) {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.popup-container.dark .popup-rich-content :deep(code) {
+  background: rgba(255, 255, 255, 0.08);
+}
 
 /* 隐藏滚动条但保留功能 */
 .no-scrollbar::-webkit-scrollbar {
@@ -557,7 +762,7 @@ const toggleComplete = async (todo: Todo) => {
   border-radius: 3px;
 }
 
-:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
+.popup-container.dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -565,7 +770,7 @@ const toggleComplete = async (todo: Todo) => {
   background: rgba(255, 255, 255, 0.3);
 }
 
-:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.popup-container.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 </style>

@@ -17,6 +17,11 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const viewingDate = ref(new Date())
 
+const toLocalDateTimeInputValue = (date: Date) => {
+  const offset = date.getTimezoneOffset()
+  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16)
+}
+
 // Initialize viewing date
 watch(() => props.modelValue, (val) => {
   if (val) {
@@ -68,7 +73,7 @@ const timeValue = computed({
     const newDate = selectedDate.value ? new Date(selectedDate.value) : new Date()
     newDate.setHours(hours)
     newDate.setMinutes(minutes)
-    emit('update:modelValue', newDate.toISOString())
+    emit('update:modelValue', toLocalDateTimeInputValue(newDate))
   }
 })
 
@@ -90,7 +95,7 @@ const selectDate = (date: Date) => {
     newDate.setHours(now.getHours())
     newDate.setMinutes(now.getMinutes())
   }
-  emit('update:modelValue', newDate.toISOString())
+  emit('update:modelValue', toLocalDateTimeInputValue(newDate))
 }
 
 const isSelected = (date: Date) => {
@@ -129,7 +134,7 @@ const clear = () => {
       <Button
         variant="outline"
         :class="cn(
-          'w-full justify-start text-left font-normal',
+          'w-full h-11 justify-start rounded-[18px] border-black/[0.06] dark:border-white/24 bg-white/50 dark:bg-black/[0.72] text-left font-normal shadow-[0_10px_24px_rgba(15,23,42,0.05)] hover:bg-white/65 dark:hover:bg-black/[0.84] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] focus-visible:border-black/20 focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:border-white/40 dark:focus-visible:ring-white/15',
           !modelValue && 'text-muted-foreground'
         )"
       >
@@ -138,7 +143,7 @@ const clear = () => {
       </Button>
     </PopoverTrigger>
     <PopoverPortal>
-      <PopoverContent class="w-auto p-0 bg-popover text-popover-foreground rounded-md border shadow-md z-[99999]" align="start">
+      <PopoverContent class="w-auto p-0 bg-white/88 dark:bg-black/[0.86] text-popover-foreground rounded-[18px] border border-black/[0.06] dark:border-white/18 shadow-[0_18px_36px_rgba(15,23,42,0.12)] z-[99999] backdrop-blur-2xl" align="start">
         <div class="p-3">
           <!-- Header -->
           <div class="flex items-center justify-between mb-4">
@@ -187,7 +192,7 @@ const clear = () => {
               <input 
                 type="time"
                 v-model="timeValue"
-                class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black/20 dark:focus-visible:ring-white/30 disabled:cursor-not-allowed disabled:opacity-50"
+                class="flex h-9 w-full rounded-[14px] border border-black/[0.06] dark:border-white/18 bg-white/55 dark:bg-black/[0.72] px-3 py-1 text-sm shadow-sm transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-black/20 focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:border-white/40 dark:focus-visible:ring-white/15 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <Button variant="ghost" size="sm" class="h-8 px-2 text-xs text-muted-foreground hover:text-foreground" @click="clear">

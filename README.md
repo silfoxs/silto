@@ -1,165 +1,175 @@
 # Silto
 
-一个现代化的 Mac 状态栏 Todo & 便签管理应用，使用 Tauri + Rust + Vue3 构建。
+Silto 是一个面向 macOS 的菜单栏 Todo / 便签应用，基于 Tauri 2、Rust、Vue 3 和 TipTap 构建。
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
+它包含两套核心界面：
 
-## ✨ 特性
+- 主窗口：宽屏双栏布局，左侧列表，右侧原地编辑
+- 状态栏悬浮窗：快速查看、切换和进入详情
 
-- 🎯 **系统托盘集成** - 常驻 Mac 菜单栏，快速访问
-- ✅ **Todo 管理** - 创建、编辑、完成任务，支持定时提醒
-- 📝 **便签系统** - 快速记录想法和笔记
-- ⏰ **智能提醒** - 到时自动发送系统通知
-- 🌓 **主题切换** - 支持深色和浅色两种模式
-- 💾 **数据持久化** - 本地安全存储，应用重启数据不丢失
-- 🎨 **现代 UI** - 基于 shadcn-vue，美观且易用
+## 项目状态
 
-## 🚀 快速开始
+当前版本已经具备这些核心能力：
 
-### 环境要求
+- 菜单栏常驻与悬浮窗交互
+- Todo 与便签双模式
+- 富文本编辑与富文本展示
+- 自动保存
+- 提醒时间
+- 深色 / 浅色主题
+- 中英文切换
+- 应用内更新检查
+- 内置 `Maple Mono` 字体
 
-- Node.js 16+
+## 技术栈
+
+前端：
+
+- Vue 3
+- TypeScript
+- Vite
+- Tailwind CSS
+- Radix Vue
+- TipTap
+- vue-i18n
+
+桌面端：
+
+- Tauri 2
+- Rust
+- Tauri Updater
+- Tauri Dialog / Process / Clipboard 等插件
+
+## 环境要求
+
+- macOS
+- Node.js 18+
 - pnpm 8+
-- Rust 1.70+
-- macOS 11+
+- Rust stable
+- Xcode Command Line Tools
 
-### 安装依赖
+## 快速开始
+
+安装依赖：
 
 ```bash
 pnpm install
 ```
 
-### 开发模式
+启动开发环境：
 
 ```bash
 pnpm tauri dev
 ```
 
-### 构建应用
+构建前端：
+
+```bash
+pnpm build
+```
+
+构建桌面应用：
 
 ```bash
 pnpm tauri build
 ```
 
-构建完成后，应用位于 `src-tauri/target/release/bundle/`
+打包产物默认位于：
 
-## 📖 使用说明
-
-### 基本操作
-
-1. **启动应用** - 应用会自动托管到菜单栏
-2. **查看列表** - 左键点击菜单栏图标
-3. **快速添加** - 右键点击菜单栏图标 → 选择"添加 Todo"或"添加便签"
-4. **编辑项目** - 点击列表中的任意项目
-5. **设置提醒** - 编辑 Todo 时选择提醒时间
-6. **切换主题** - 右键菜单 → 设置 → 选择主题
-
-### 快捷功能
-
-- **Todo 列表** - 显示所有待办事项，区分已完成和未完成
-- **便签列表** - 按更新时间排序显示所有便签
-- **视图切换** - 顶部标签页快速切换 Todo 和便签
-- **设置面板** - 配置默认显示内容和主题
-
-## 🏗️ 技术架构
-
-### 后端 (Rust)
-
-- **Tauri 2.x** - 跨平台应用框架
-- **tauri-plugin-store** - 数据持久化
-- **tauri-plugin-notification** - 系统通知
-- **chrono** - 时间处理
-- **tokio** - 异步运行时
-
-### 前端 (Vue 3)
-
-- **Vue 3** + **TypeScript** - 渐进式框架
-- **Vite** - 快速构建工具
-- **Tailwind CSS 3** - 实用优先的 CSS 框架
-- **shadcn-vue** - 高质量 UI 组件
-- **radix-vue** - 无样式组件基础
-- **lucide-vue-next** - 现代图标库
-
-## 📁 项目结构
-
+```bash
+src-tauri/target/release/bundle/
 ```
+
+## 常用命令
+
+```bash
+pnpm dev          # 仅启动前端 Vite
+pnpm build        # 构建前端
+pnpm tauri dev    # 启动 Tauri 开发环境
+pnpm tauri build  # 打包桌面应用
+```
+
+## 目录结构
+
+```text
 silto/
-├── src/                    # Vue3 前端代码
-│   ├── components/         # Vue 组件
-│   ├── composables/        # 组合式函数
-│   ├── types/              # TypeScript 类型
-│   ├── lib/                # 工具函数
-│   └── styles/             # 全局样式
-├── src-tauri/              # Rust 后端代码
-│   ├── src/
-│   │   ├── models.rs       # 数据模型
-│   │   ├── commands.rs     # Tauri 命令
-│   │   ├── tray.rs         # 系统托盘
-│   │   └── notification.rs # 提醒系统
-│   └── icons/              # 应用图标
-├── .cursorrules            # AI 开发指南
-├── ARCHITECTURE.md         # 架构文档
-└── README.md               # 项目说明
+├── src/
+│   ├── components/        # UI 组件
+│   ├── composables/       # 数据与状态逻辑
+│   ├── locales/           # 中英文文案
+│   ├── styles/            # 全局样式
+│   ├── types/             # TypeScript 类型
+│   └── assets/fonts/      # 内置字体
+├── src-tauri/
+│   ├── src/               # Rust / Tauri 逻辑
+│   ├── icons/             # 应用图标
+│   └── tauri.conf.json    # Tauri 配置
+├── ARCHITECTURE.md        # 架构说明
+└── README.md
 ```
 
-## 🔧 配置说明
+## 当前界面约定
 
-### 数据存储位置
+- 主窗口尺寸默认在 [tauri.conf.json](/Users/smile/work/silto/src-tauri/tauri.conf.json)
+- 主窗口为无边框透明窗口
+- 主编辑区使用 TipTap 富文本编辑器
+- 状态栏 popup 使用独立 `popup.html`
+- 设置页已改为主窗口内的独立页面，而不是弹层
 
-所有数据存储在：
-```
-~/.local/share/com.smile.silto/store.json
-```
+## 数据与存储
 
-### 配置文件
+Silto 使用本地持久化存储。
 
-- `src-tauri/tauri.conf.json` - Tauri 应用配置
-- `tailwind.config.js` - Tailwind CSS 配置
-- `vite.config.ts` - Vite 构建配置
-- `tsconfig.json` - TypeScript 配置
+- Todo、便签、设置都保存在本机
+- 具体存储路径由 Tauri 的应用数据目录决定
+- 不依赖云端服务
 
-## 🛠️ 开发指南
+如果你要调试数据读写逻辑，优先查看：
 
-### 添加新功能
+- [useTodos.ts](/Users/smile/work/silto/src/composables/useTodos.ts)
+- [useNotes.ts](/Users/smile/work/silto/src/composables/useNotes.ts)
+- [useSettings.ts](/Users/smile/work/silto/src/composables/useSettings.ts)
 
-1. **后端** - 在 `src-tauri/src/` 中添加 Rust 代码
-2. **前端** - 在 `src/components/` 中创建 Vue 组件
-3. **数据管理** - 使用 composables 模式
+## 关键文件
 
-### 代码规范
+前端主入口：
 
-- 使用 TypeScript 严格模式
-- 遵循 Vue 3 Composition API
-- 使用 Tailwind CSS 类名
-- Rust 代码使用 rustfmt 格式化
+- [App.vue](/Users/smile/work/silto/src/App.vue)
 
-详细开发指南请查看 [.cursorrules](.cursorrules) 和 [ARCHITECTURE.md](ARCHITECTURE.md)
+设置页：
 
-## 🗺️ 路线图
+- [Settings.vue](/Users/smile/work/silto/src/components/Settings.vue)
 
-- [ ] 添加 Todo 优先级功能
-- [ ] 支持便签分类/标签
-- [ ] 全局搜索功能
-- [ ] 数据导入/导出
-- [ ] 快捷键支持
-- [ ] 云同步功能
+富文本编辑器：
 
-## 📄 许可证
+- [RichTextEditor.vue](/Users/smile/work/silto/src/components/ui/RichTextEditor.vue)
 
-MIT License
+状态栏悬浮窗：
 
-## 🙏 致谢
+- [PopupView.vue](/Users/smile/work/silto/src/components/PopupView.vue)
 
-- [Tauri](https://tauri.app/) - 强大的应用框架
-- [Vue 3](https://vuejs.org/) - 渐进式 JavaScript 框架
-- [shadcn-vue](https://www.shadcn-vue.com/) - 精美的 UI 组件
-- [Tailwind CSS](https://tailwindcss.com/) - 实用优先的 CSS 框架
+托盘与窗口控制：
 
-## 📮 反馈
+- [tray.rs](/Users/smile/work/silto/src-tauri/src/tray.rs)
 
-如有问题或建议，欢迎提交 Issue 或 Pull Request。
+## 开发建议
 
----
+- UI 调整优先从 `src/components/` 和 `src/App.vue` 入手
+- 数据行为优先查看 `src/composables/`
+- 桌面窗口、托盘、原生行为优先查看 `src-tauri/src/`
+- 大改 UI 前，先确认你看到的是开发版，不是旧的已安装 `.app`
 
-**Enjoy using Silto!** 🎉
+## 注意事项
+
+- 当前项目只面向 macOS 菜单栏场景设计
+- 内置 `Maple Mono` 字体目前直接打包了 `ttf`，体积较大
+- 如果后续要继续优化安装包大小，建议把字体转成 `woff2` 或减少字重
+- popup 和主窗口是两套页面，需要分别注意主题和样式一致性
+
+## 相关文档
+
+- [ARCHITECTURE.md](/Users/smile/work/silto/ARCHITECTURE.md)
+
+## License
+
+MIT

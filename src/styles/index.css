@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Maple Mono';
+  src: url('../assets/fonts/MapleMono-NF-CN-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Maple Mono';
+  src: url('../assets/fonts/MapleMono-NF-CN-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Maple Mono';
+  src: url('../assets/fonts/MapleMono-NF-CN-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Maple Mono';
+  src: url('../assets/fonts/MapleMono-NF-CN-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -68,9 +100,8 @@
 /* 自定义样式 */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Maple Mono', 'Maple Mono NF', 'Maple Mono SC NF',
+    'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
