@@ -180,7 +180,7 @@ const handleSaveNote = async (note: Partial<Note>) => {
 
     <!-- Title Bar -->
     <div 
-      class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between z-20 px-4 pt-3 pb-1 select-none"
+      class="titlebar absolute top-0 left-0 right-0 flex items-center justify-between z-20 px-3 pt-2.5 pb-1 select-none"
       @mousedown="startDrag"
     >
       <div class="flex items-center gap-3">
@@ -212,14 +212,14 @@ const handleSaveNote = async (note: Partial<Note>) => {
 
     <!-- Main Content -->
     <div class="relative z-10 flex-1 min-h-0 bg-transparent">
-      <div v-if="activePage === 'main'" class="flex h-full gap-3 overflow-hidden rounded-[16px] p-3">
+      <div v-if="activePage === 'main'" class="flex h-full gap-2 overflow-hidden rounded-[16px] p-2">
         <div class="min-w-0 w-[360px] shrink-0 rounded-[16px] bg-white/[0.05] dark:bg-black/[0.18] backdrop-blur-[32px] overflow-hidden relative">
           <div class="h-full rounded-[16px] border border-black/[0.06] bg-white dark:border-white/18 dark:bg-black/[0.64]">
             <TodoList v-if="activeView === 'todo'" :selected-id="selectedTodoId" @edit="handleEditTodo" />
             <NoteList v-else :selected-id="selectedNoteId" @edit="handleEditNote" />
           </div>
 
-          <div class="absolute bottom-5 left-3 right-3 z-30 pointer-events-none">
+          <div class="absolute bottom-4 left-2 right-2 z-30 pointer-events-none">
             <div class="pointer-events-auto flex items-center justify-center gap-2">
               <button
                 type="button"
@@ -241,7 +241,7 @@ const handleSaveNote = async (note: Partial<Note>) => {
         </div>
 
         <div class="min-w-0 flex-1 rounded-[16px] bg-white/[0.05] dark:bg-black/[0.18] backdrop-blur-[32px] overflow-hidden">
-          <div class="h-full min-h-0 rounded-[16px] border border-black/[0.06] bg-white dark:border-white/18 dark:bg-black/[0.64] p-4 pt-16 relative">
+          <div class="h-full min-h-0 rounded-[16px] border border-black/[0.06] bg-white dark:border-white/18 dark:bg-black/[0.64] p-3 pt-[3.75rem] relative">
             <TodoForm
               v-if="isTodoEditorVisible"
               :todo="editingTodo"

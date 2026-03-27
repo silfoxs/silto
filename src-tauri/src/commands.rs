@@ -25,13 +25,23 @@ pub async fn save_todo(app: AppHandle, todo: Todo) -> Result<(), String> {
     // If not, we might need manual bind. 
     // Usually sqlx sqlite + chrono works fine.
     
-    // Check if we need to reset notified status
-    // If there is a remind time and it's in the future, we reset notified to false
-    // regardless of what the frontend sent.
     let mut todo = todo;
-    if let Some(remind_time) = todo.remind_time {
-        if remind_time > chrono::Utc::now() {
+    let existing = sqlx::query_as::<_, Todo>("SELECT * FROM todos WHERE id = ?")
+        .bind(&todo.id)
+        .fetch_optional(&db.pool)
+        .await
+        .map_err(|e| format!("Failed to fetch existing todo: {}", e))?;
+
+    if let Some(existing_todo) = existing {
+        if existing_todo.remind_time == todo.remind_time {
+            todo.notified = existing_todo.notified;
+        } else if todo
+            .remind_time
+            .is_some_and(|remind_time| remind_time > chrono::Utc::now())
+        {
             todo.notified = false;
+        } else {
+            todo.notified = existing_todo.notified;
         }
     } else {
         todo.notified = false;
